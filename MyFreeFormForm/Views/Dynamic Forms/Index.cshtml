@@ -1,0 +1,18 @@
+﻿@model MyFreeFormForm.Models.DynamicFormModel
+
+<form asp-action="SubmitDynamicForm" method="post">
+    @foreach (var field in Model.Fields)
+    {
+        <div>
+            <label>@field.FieldName</label>
+            <input type="text" name="@field.FieldName" />
+            <!-- Adjust input type based on field.FieldType -->
+
+            <!-- Add validation message -->
+            <span asp-validation-for="@field.FieldName"></span>
+
+
+        </div>
+    }
+    <button type="submit">Submit</button>
+</form>
