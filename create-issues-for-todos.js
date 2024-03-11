@@ -80,7 +80,7 @@ function findTODOs(filePath) {
 }
 
 
-function scanDirectory(directory, ignoreDirs = ['node_modules','dist','build','lib','coverage']) {
+function scanDirectory(directory, ignoreDirs = ['node_modules','dist','build','lib','coverage','bin','obj','.git','Migrations']) {
   fs.readdirSync(directory, { withFileTypes: true }).forEach(dirent => {
     const fullPath = path.join(directory, dirent.name);
     console.log(`Visiting directory: ${directory}`);
