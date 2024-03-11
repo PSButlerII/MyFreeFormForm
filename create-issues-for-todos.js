@@ -14,7 +14,7 @@ const repo = repoDetails[1]
 async function issueExists (title) {
   const { data: issues } = await octokit.request('GET /repos/{owner}/{repo}/issues', {
     owner: 'PSButlerII',
-    repo: 'rcnDevTracker',
+    repo: 'MyFreeFormForm',
     state: 'open',
     labels: 'todo',
     headers: {
