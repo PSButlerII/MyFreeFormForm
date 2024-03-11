@@ -5,50 +5,25 @@ const { Octokit } = require('@octokit/rest')
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
-const { data: rateLimit } = await octokit.rateLimit.get();
-console.log(rateLimit);
 
 const repoDetails = process.env.GITHUB_REPOSITORY.split('/')
 
 const owner = repoDetails[0]
 const repo = repoDetails[1]
 
-const issueExists = async (title) => {
-  try {
-    const { data: issues } = await octokit.issues.listForRepo({
-      owner,
-      repo,
-      labels: 'todo',
-      state: 'open',
-    });
+async function issueExists (title) {
+  const { data: issues } = await octokit.request('GET /repos/{owner}/{repo}/issues', {
+    owner: 'PSButlerII',
+    repo: 'MyFreeFormForm',
+    state: 'open',
+    labels: 'todo',
+    // headers: {
+    //   'X-GitHub-Api-Version': '2022-11-28'
+    // }
+  })
 
-    return issues.some(issue => issue.title === title);
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
-};
-
-// const createIssue = async (title, body) => {
-//   try {
-//     const exists = await issueExists(title);
-//     if (!exists) {
-//       await octokit.issues.create({
-//         owner,
-//         repo,
-//         title,
-//         body,
-//         labels: ['todo'],
-//       });
-//       console.log(`Created issue: ${title}`);
-//     } else {
-//       console.log(`Issue already exists: ${title}`);
-//     }
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
-
+  return issues.some(issue => issue.title === title)
+}
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
