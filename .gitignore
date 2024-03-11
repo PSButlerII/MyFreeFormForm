@@ -128,4 +128,11 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-/.vs/MyFreeFormForm
+
+# Settings files
+**/appsettings.json
+**/rcndev-001-site1 - Web Deploy1.pubxml.user
+
+# Ignored folders
+bin/
+obj/
