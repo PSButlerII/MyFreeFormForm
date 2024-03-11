@@ -1,0 +1,39 @@
+name: TODO Issue Creator
+on: [push]
+
+jobs:
+  create_issues_for_todos:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+        
+    - name: Print current directory and list files
+      run: |
+        pwd
+        ls -la
+    - name: Install Dependencies
+      run: npm install
+      
+    - name: Print current working directory
+      run: |
+         pwd
+         
+    - name: List directory structure
+      run: |
+        ls -Rl
+
+    - name: Scan for TODOs and create GitHub Issues
+      env:
+        GITHUB_TOKEN: ${{ secrets.For_creating_Issues }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        
+   
+
+      run: |
+        node create-issues-for-todos.js
