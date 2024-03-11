@@ -136,3 +136,4 @@ dist
 # Ignored folders
 bin/
 obj/
+/.vs/MyFreeFormForm
