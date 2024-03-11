@@ -1,0 +1,44 @@
+﻿@using MyFreeFormForm.Helpers
+@model MyFreeFormForm.Models.DynamicFormModel
+
+<form asp-action="SubmitDynamicForm" method="post">
+    @for (int i = 0; i < Model.Fields.Count; i++)
+    {
+        <div class="form-group">
+            <label>@Model.Fields[i].FieldName</label>
+            @switch (Model.Fields[i].FieldType)
+            {
+                case FieldType.Text:
+                    <input type="text" asp-for="@Model.Fields[i].FieldName" class="form-control" />
+                    break;
+                case FieldType.Email:
+                    <input type="email" asp-for="@Model.Fields[i].FieldName" class="form-control" />
+                    break;
+                case FieldType.Number:
+                    <input type="number" asp-for="@Model.Fields[i].FieldName" class="form-control" />
+                    break;
+                case FieldType.Date:
+                    <input type="date" asp-for="@Model.Fields[i].FieldName" class="form-control" />
+                    break;
+                    // Handle other field types accordingly
+            }
+        </div>
+    }
+    <button type="button" onclick="addField()">Add Field</button>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+@* //TODO: Need to add the ability to add the Field name *@
+<script>
+    function addField() {
+        // Example of adding a new text field. Adjust accordingly for different types or user-defined fields.
+        const container = document.createElement("div");
+        container.className = "form-group";
+        container.innerHTML = `
+                <label>New Field</label>
+                <input type="text" name="Fields[${Date.now()}].FieldName" class="form-control" placeholder="Field Name" />
+                <input type="hidden" name="Fields[${Date.now()}].FieldType" value="Text" />
+            `;
+        document.forms[0].appendChild(container); // Assuming there's only one form on the page
+    }
+</script>
+
