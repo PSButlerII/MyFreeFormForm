@@ -17,9 +17,9 @@ async function issueExists (title) {
     repo: 'MyFreeFormForm',
     state: 'open',
     labels: 'todo',
-    headers: {
-      'X-GitHub-Api-Version': '2022-11-28'
-    }
+    // headers: {
+    //   'X-GitHub-Api-Version': '2022-11-28'
+    // }
   })
 
   return issues.some(issue => issue.title === title)
