@@ -4,13 +4,15 @@ using System.IO;
 
 namespace MyFreeFormForm.Helpers
 {
-    public class FileParser
+    public class FileParser(ILogger<FileParser> logger)
     {
 
+        private readonly ILogger<FileParser> _logger = logger;
 
         // Placeholder for ParseExcelFile method
         public async Task<List<Dictionary<string, string>>> ParseExcelFile(IFormFile fileUpload)
         {
+            _logger.LogInformation("Parsing Excel file...");
             var result = new List<Dictionary<string, string>>();
 
             // Ensure EPPlus license context is set (required for EPPlus 5.x and above)
@@ -35,6 +37,8 @@ namespace MyFreeFormForm.Helpers
                     var headers = new List<string>();
                     for (int col = 1; col <= colCount; col++)
                     {
+                        _logger.LogInformation("Reading header from column {Column}", col);
+                        _logger.LogInformation("Value: {Value}", worksheet.Cells[1, col].Value?.ToString().Trim());
                         var header = worksheet.Cells[1, col].Value?.ToString().Trim();
                         headers.Add(header);
                     }
@@ -45,6 +49,8 @@ namespace MyFreeFormForm.Helpers
                         var rowDict = new Dictionary<string, string>();
                         for (int col = 1; col <= colCount; col++)
                         {
+                            _logger.LogInformation("Reading data from row {Row}, column {Column}", row, col);
+                            _logger.LogInformation("Value: {Value}", worksheet.Cells[row, col].Value?.ToString().Trim());
                             var value = worksheet.Cells[row, col].Value?.ToString().Trim();
                             rowDict[headers[col - 1]] = value;
                         }

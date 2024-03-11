@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MyFreeFormForm.Data;
+using MyFreeFormForm.Helpers;
 using Serilog;
 using Serilog.Events;
 
@@ -22,6 +23,8 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+builder.Services.AddTransient<FileParser>();
 
 var app = builder.Build();
 

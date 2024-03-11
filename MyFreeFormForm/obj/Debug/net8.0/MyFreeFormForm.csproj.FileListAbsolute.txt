@@ -290,3 +290,12 @@ C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\EPPlu
 C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\EPPlus.Interfaces.dll
 C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\EPPlus.System.Drawing.dll
 C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Microsoft.IO.RecyclableMemoryStream.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.AspNetCore.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.Extensions.Hosting.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.Extensions.Logging.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.Formatting.Compact.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.Settings.Configuration.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.Sinks.Console.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.Sinks.Debug.dll
+C:\Users\prest\source\repos\MyFreeFormForm\MyFreeFormForm\bin\Debug\net8.0\Serilog.Sinks.File.dll

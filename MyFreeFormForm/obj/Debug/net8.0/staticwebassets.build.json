@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "V89xYrmzMPbnmJ0shkf7jq2A8TlSdVigAUd8mtPLaSQ=",
+  "Hash": "7VDstdHnCPFrHfNANfnn0j49d4Rp9sqF4Jfo0zlYQ7Q=",
   "Source": "MyFreeFormForm",
   "BasePath": "_content/MyFreeFormForm",
   "Mode": "Default",
@@ -1231,6 +1231,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "C:\\Users\\prest\\source\\repos\\MyFreeFormForm\\MyFreeFormForm\\wwwroot\\js\\DynamicFormJS.js",
+      "SourceId": "MyFreeFormForm",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\prest\\source\\repos\\MyFreeFormForm\\MyFreeFormForm\\wwwroot\\",
+      "BasePath": "_content/MyFreeFormForm",
+      "RelativePath": "js/DynamicFormJS.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\DynamicFormJS.js"
     },
     {
       "Identity": "C:\\Users\\prest\\source\\repos\\MyFreeFormForm\\MyFreeFormForm\\wwwroot\\js\\site.js",

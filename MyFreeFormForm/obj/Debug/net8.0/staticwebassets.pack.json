@@ -13,6 +13,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\Users\\prest\\source\\repos\\MyFreeFormForm\\MyFreeFormForm\\wwwroot\\js\\DynamicFormJS.js",
+      "PackagePath": "staticwebassets\\js\\DynamicFormJS.js"
+    },
+    {
       "Id": "C:\\Users\\prest\\source\\repos\\MyFreeFormForm\\MyFreeFormForm\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },
