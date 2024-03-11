@@ -1,44 +1,107 @@
 ﻿@using MyFreeFormForm.Helpers
 @model MyFreeFormForm.Models.DynamicFormModel
 
+@using MyFreeFormForm.Models
+
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+    Upload Excel/CSV File
+</button>
+<button type="button" onclick="addField()">Add Field</button>
+<button type="submit" class="btn btn-primary">Submit</button>
 <form asp-action="SubmitDynamicForm" method="post">
     @for (int i = 0; i < Model.Fields.Count; i++)
     {
-        <div class="form-group">
+        <div class="form-group dynamic-field" id="field-group-@i">
             <label>@Model.Fields[i].FieldName</label>
-            @switch (Model.Fields[i].FieldType)
-            {
-                case FieldType.Text:
-                    <input type="text" asp-for="@Model.Fields[i].FieldName" class="form-control" />
-                    break;
-                case FieldType.Email:
-                    <input type="email" asp-for="@Model.Fields[i].FieldName" class="form-control" />
-                    break;
-                case FieldType.Number:
-                    <input type="number" asp-for="@Model.Fields[i].FieldName" class="form-control" />
-                    break;
-                case FieldType.Date:
-                    <input type="date" asp-for="@Model.Fields[i].FieldName" class="form-control" />
-                    break;
-                    // Handle other field types accordingly
-            }
+            <input type="@Model.Fields[i].FieldType.ToString().ToLower()" name="Fields[@i].FieldName" class="form-control" />
+            <!-- Include a button to remove the field -->
+            <button type="button" onclick="removeField('field-group-@i')">Remove</button>
         </div>
     }
-    <button type="button" onclick="addField()">Add Field</button>
-    <button type="submit" class="btn btn-primary">Submit</button>
+    
 </form>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-controller="Forms" asp-action="UploadFile" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="fileUpload" class="form-label">Select file</label>
+                        <input type="file" class="form-control" id="fileUpload" name="fileUpload">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @* //TODO: Need to add the ability to add the Field name *@
-<script>
-    function addField() {
-        // Example of adding a new text field. Adjust accordingly for different types or user-defined fields.
-        const container = document.createElement("div");
-        container.className = "form-group";
-        container.innerHTML = `
-                <label>New Field</label>
-                <input type="text" name="Fields[${Date.now()}].FieldName" class="form-control" placeholder="Field Name" />
-                <input type="hidden" name="Fields[${Date.now()}].FieldType" value="Text" />
-            `;
-        document.forms[0].appendChild(container); // Assuming there's only one form on the page
+
+    <script>
+        function addField() {
+            const uniqueId = Date.now(); // Using current timestamp as a unique identifier
+            const index = document.querySelectorAll('.dynamic-field').length;
+
+            const fieldHtml = `
+            <div class="form-group dynamic-field" id="field-group-${uniqueId}">
+                <label>Field Name</label>
+                <input type="text" name="Fields[${index}].FieldName" class="form-control" placeholder="Field Name" />
+                <select name="Fields[${index}].FieldType" class="form-control">
+                    <option value="Text">Text</option>
+                    <option value="Email">Email</option>
+                    <option value="Number">Number</option>
+                    <option value="Date">Date</option>
+                </select>
+                <button type="button" onclick="removeField('field-group-${uniqueId}')">Remove</button>
+            </div>
+        `;
+
+            document.forms[0].insertAdjacentHTML('beforeend', fieldHtml);
+        }
+
+    function removeField(fieldId) {
+        const fieldGroup = document.getElementById(fieldId);
+        if (fieldGroup) {
+            fieldGroup.remove();
+        }
+        // After removal, update the names to ensure they are sequential
+        updateFieldNames();
+    }
+
+    function updateFieldNames() {
+        const fieldGroups = document.querySelectorAll('.dynamic-field');
+
+        fieldGroups.forEach((fieldGroup, index) => {
+            // Correctly target the input and select within the .dynamic-field
+            const input = fieldGroup.querySelector('input[type=text], input[type=email], input[type=number], input[type=date]');
+            const select = fieldGroup.querySelector('select');
+
+            if (input) {
+                // Assuming the input's name attribute is structured as Fields[index].Value
+                input.name = `Fields[${index}].Value`;
+            }
+
+            if (select) {
+                // Assuming the select's name attribute is for FieldType
+                select.name = `Fields[${index}].FieldType`;
+            }
+
+            // Update the button's onclick attribute to reflect the new index
+            const button = fieldGroup.querySelector('button[onclick^="removeField"]');
+            if (button) {
+                // Generate a new unique ID for updating the onclick attribute
+                const newId = `field-group-${Date.now()}-${index}`; // Ensuring unique ID
+                fieldGroup.id = newId;
+                button.setAttribute('onclick', `removeField('${newId}')`);
+            }
+        });
     }
 </script>
-

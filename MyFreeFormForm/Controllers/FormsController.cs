@@ -7,6 +7,7 @@ namespace MyFreeFormForm.Controllers
     [Route("forms")]
     public class FormsController : Controller
     {
+        private readonly FileParser _fileParser;
         [HttpGet("static")]
         public IActionResult StaticForm()
         {
@@ -50,6 +51,32 @@ namespace MyFreeFormForm.Controllers
             return View("CreateDynamicForm", model);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UploadFile(IFormFile fileUpload)
+        {
+            if (fileUpload != null && fileUpload.Length > 0)
+            {
+                // Assuming you want to handle Excel files specifically
+                // and fall back to CSV for other cases
+                if (fileUpload.FileName.EndsWith(".xlsx"))
+                {
+                    // Parse Excel file
+                    await _fileParser.ParseExcelFile(fileUpload);
+                }
+                else if (fileUpload.FileName.EndsWith(".csv"))
+                {
+                    // Parse CSV file
+                    await _fileParser.ParseCsvFile(fileUpload);
+                }
+                else
+                {
+                    return View("Error", new ErrorViewModel { RequestId = "Unsupported file format" });
+                }
+
+                return RedirectToAction("FormCreatedSuccessfully"); // Redirect to a success page or action
+            }
+            return View("Error", new ErrorViewModel { RequestId = "File upload failed" });
+        }
     }
 
 }

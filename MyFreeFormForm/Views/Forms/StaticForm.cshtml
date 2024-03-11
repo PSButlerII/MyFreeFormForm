@@ -7,12 +7,15 @@
 
 <form asp-action="SubmitStaticForm" method="post">
     <div>
-        <label asp-for="FirstName">First Name</label>
-        <input asp-for="FirstName" class="form-control" />
+        <label asp-for="CompanyName">Company Name</label>
     </div>
     <div>
-        <label asp-for="LastName">Last Name</label>
-        <input asp-for="LastName" class="form-control" />
+        <label asp-for="ContactFirstName">First Name</label>
+        <input asp-for="ContactFirstName" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="ContactLastName">Last Name</label>
+        <input asp-for="ContactLastName" class="form-control" />
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
