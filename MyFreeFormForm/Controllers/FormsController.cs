@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MyFreeFormForm.Data;
 using MyFreeFormForm.Helpers;
 using MyFreeFormForm.Models;
+using Newtonsoft.Json;
 
 namespace MyFreeFormForm.Controllers
 {
@@ -9,13 +11,13 @@ namespace MyFreeFormForm.Controllers
     public class FormsController : Controller
     {
         private readonly FileParser _fileParser;
+        private readonly ApplicationDbContext _context;
 
         // Use constructor injection to get a FileParser instance
         public FormsController(FileParser fileParser)
         {
             _fileParser = fileParser;
         }
-
         
         [HttpGet("static")]
         public IActionResult StaticForm()
@@ -33,8 +35,7 @@ namespace MyFreeFormForm.Controllers
             }
 
             return View("StaticForm", model);
-        }
-        
+        }        
 
         [HttpGet("dynamic")]
         public IActionResult CreateDynamicForm()
@@ -51,13 +52,26 @@ namespace MyFreeFormForm.Controllers
         [HttpPost("dynamic")]
         public IActionResult SubmitDynamicForm(DynamicFormModel model)
         {
+            Console.BackgroundColor = ConsoleColor.Green;
+            Console.WriteLine("SubmitDynamicForm: " + JsonConvert.SerializeObject(model));
+
             if (ModelState.IsValid)
             {
-                // Process the dynamic form data here
-                return RedirectToAction("SuccessPage"); // Redirect to a success notification page
+                 var form = new Form { FormName = model.FormName, Description = model.Description, CreatedDate = DateTime.Now };
+                 _context.Forms.Add(form);
+                 _context.SaveChanges();
+                 foreach (var field in model.Fields)
+                 {
+                     var formField = new FormField { FormId = form.FormId, FieldName = field.FieldName, FieldType = field.FieldType.ToString(), FieldValue = field.FieldValue.ToString() };
+                     _context.FormFields.Add(formField);
+                 }
+                 var formNotes = new FormNotes { FormId = form.FormId, Note = "Form submitted", CreatedDate = DateTime.Now };
+                 _context.FormNotes.Add(formNotes);
+                 _context.SaveChanges();
+                return Json(new { success = true, message = "Form submitted successfully" });
             }
-
-            return View("CreateDynamicForm", model);
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+            return Json(new { success = false, message = "Validation failed", errors = errors });
         }
 
         [HttpPost]
@@ -74,9 +88,6 @@ namespace MyFreeFormForm.Controllers
                     {
                         // Parse Excel file
                         parsedData = await _fileParser.ParseExcelFile(fileUpload);
-
-                        //Send data to the view
-                        //return View("ViewData", parsedData);
                     }
                     else if (fileUpload.FileName.EndsWith(".csv"))
                     {
@@ -87,11 +98,6 @@ namespace MyFreeFormForm.Controllers
                     {
                         return Json(new { success = false, message = "Unsupported file format" });
                     }
-
-                    // Optionally process parsedData here or add it to the ViewBag/ViewData if needed for the return view
-                    // For example, you could store it in session or temp data to display in the view
-                    // HttpContext.Session.SetObject("UploadedData", parsedData); // Ensure session is configured in Startup.cs
-
                     return Json(new { success = true, message = "File processed successfully", fields = parsedData });
                 }
                 catch (Exception ex)
@@ -102,6 +108,22 @@ namespace MyFreeFormForm.Controllers
             }
             return Json(new { success = false, message = "File upload failed" });
         }
+
+        [HttpPost("UploadedDocument")]
+        public IActionResult UploadedDocument(DynamicFormModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Process the dynamic form data here
+                return RedirectToAction("SuccessPage"); // Redirect to a success notification page
+            }            
+
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.WriteLine("UploadedDocuments: " + model);
+
+            return View("UploadedDocument", model);
+        }
+
 
     }
 

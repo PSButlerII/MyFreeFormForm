@@ -1,0 +1,36 @@
+﻿@using MyFreeFormForm.Helpers
+@model MyFreeFormForm.Models.DynamicFormModel
+@using MyFreeFormForm.Models
+
+
+
+<div id="Btn-Div">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        Upload Excel/CSV File
+    </button>
+    <button type="button" id="addFieldBtn" class="btn btn-primary">Add Field</button>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</div>
+
+<div id="dataCarousel" class="carousel slide" data-ride="carousel">
+    <form asp-action="SubmitDynamicForm" method="post" class="carousel-inner" id="carouselInner">
+        @for (int i = 0; i < Model.Fields.Count; i++)
+        {
+            <div class="form-group dynamic-field" id="field-group-@i">
+                <label>@Model.Fields[i].FieldName</label>
+                <input type="@Model.Fields[i].FieldType.ToString().ToLower()" name="Fields[@i].FieldName" class="form-control" />
+                <!-- Include a button to remove the field -->
+                <button type="button" class="remove-field-btn">Remove</button>
+            </div>
+        }
+    </form>
+    <button class="carousel-control-prev" type="button" data-bs-target="#formsCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#formsCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+<button id="submitData" class="btn btn-primary">Submit Data</button>
