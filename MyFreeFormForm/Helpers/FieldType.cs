@@ -9,4 +9,14 @@
         // Add other field types as necessary
     }
 
+    public enum FieldOptions  // JSON or delimited list for options
+    {
+        JSON,
+        Comma,
+        Pipe,
+        Semicolon,
+        Colon,
+        Space,
+    }
+
 }

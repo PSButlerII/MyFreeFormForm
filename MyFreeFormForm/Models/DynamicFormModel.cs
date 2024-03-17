@@ -7,7 +7,7 @@ namespace MyFreeFormForm.Models
     {
         public string FieldName { get; set; }
         public FieldType FieldType { get; set; } // Simple text representation for simplicity
-        public Object FieldValue { get; set; }
+        public string FieldValue { get; set; }
     }
 
     public class DynamicFormModel

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MyFreeFormForm.Helpers;
+using System.ComponentModel.DataAnnotations;
 
 namespace MyFreeFormForm.Models
 {
@@ -9,7 +10,7 @@ namespace MyFreeFormForm.Models
         public int FormId { get; set; }
         public string FieldName { get; set; }
         public string FieldType { get; set; }
-        public string FieldOptions { get; set; } // JSON or delimited list for options
+        public FieldOptions FieldOptions { get; set; } // JSON or delimited list for options
         public string FieldValue { get; set; }
         public bool Required { get; set; }
 

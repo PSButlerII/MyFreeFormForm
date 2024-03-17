@@ -9,6 +9,7 @@ namespace MyFreeFormForm.Models
         public string FormName { get; set; }
         public string Description { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
 
         public ICollection<FormField> FormFields { get; set; }
         public ICollection<FormNotes> FormNotes { get; set; }

@@ -89,12 +89,21 @@ namespace MyFreeFormForm.Helpers
                 using (var reader = new StreamReader(stream))
                 {
                     string headerLine = await reader.ReadLineAsync();
-                    var headers = headerLine.Split(',');
+                    // Check to see what the delimiter is
+                    string delimiter = headerLine.Contains(",") ? "," : headerLine.Contains(";") ? ";" : headerLine.Contains("\t") ? "\t" : headerLine.Contains("|") ? "|" : headerLine.Contains(":")? ":": null;
+                    if (delimiter == null)
+                    {
+                        _logger.LogError("Unsupported delimiter");
+                        return result;
+                    }
+                    _logger.LogInformation("Delimiter: {Delimiter}", delimiter);
+
+                    var headers = headerLine.Split(delimiter); // Split the header line using the delimiter
 
                     while (!reader.EndOfStream)
                     {
                         var line = await reader.ReadLineAsync();
-                        var values = line.Split(',');
+                        var values = line.Split(delimiter);
 
                         var rowDict = new Dictionary<string, string>();
                         for (int i = 0; i < headers.Length; i++)
@@ -105,6 +114,8 @@ namespace MyFreeFormForm.Helpers
 
                         result.Add(rowDict);
                     }
+                    // Add the delimiter to the result
+                    result.Add(new Dictionary<string, string> { { "Delimiter", delimiter } });
                 }
             }
             _logger.LogInformation("CSV file parsing completed. Total items processed: {RowCount}", counter);

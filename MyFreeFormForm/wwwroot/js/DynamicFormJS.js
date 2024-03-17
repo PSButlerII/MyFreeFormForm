@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let progress = 0;
 
     // Simulate loading screen
-    const interval = setInterval(() => {
+    /*const interval = setInterval(() => {
         if (progress >= 100) {
             clearInterval(interval);
             // Hide loading screen
@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
             progressBar.style.width = progress + '%';
             progressBar.setAttribute('aria-valuenow', progress);
         }
-    }, 500); // Update every 500ms - for demonstration purposes only
+    }, 500);*/ // Update every 500ms - for demonstration purposes only
 
-    $('#dataCarousel').carousel({ interval: false});
+    //$('#dataCarousel').carousel({ interval: false});
 
     $('#dataCarousel').carousel('pause');
 
@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#customNextBtn').addEventListener('click', handleCarouselControlClick);
 
     document.querySelector('#customPrevBtn').addEventListener('click', handleCarouselControlClick);
-
 
     // Initialize or update carousel after adding items dynamically
     bootstrap.Carousel.getOrCreateInstance(carousel);
@@ -111,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         goToSlide(newIndex);
+        updateFieldNames();
     }
 
     function addField(context = 'staticForm') {
@@ -141,7 +141,10 @@ document.addEventListener('DOMContentLoaded', function () {
         fieldGroup.appendChild(fieldTypeSelect);
 
         // Field Value
-        const fieldValueInput = createInputField(`Fields[${index}].Value`, 'Value', 'text');
+        //const fieldValueInput = createInputField(`Fields[${index}].Value`, 'Value', 'text');
+        const fieldValueInput = createInputField(`Fields[${index}].FieldValue`, 'Value', 'text');
+        //add an id to the field value input
+        fieldValueInput.id = 'Field-Value';
         fieldGroup.appendChild(createLabel('Value'));
         fieldGroup.appendChild(fieldValueInput);
 
@@ -227,18 +230,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(this);
             formData.append('FormName', document.getElementById('FormName').value);
             formData.append('Description', document.getElementById('Description').value);
+
             console.log('Form submitted', formData)
 
             for (let [key, value] of formData.entries()) {
                 console.log(`${key}: ${value}`);
-            }
+                //set the fields and values to the form data
+                //formData.set(key, value);
 
+            }
             // AJAX submission logic here for SubmitDynamicForm in the controller
             try {
                 const response = await fetch(this.action, {
                     method: 'POST',
                     body: formData,
-                    headers: { 'Accept': 'application/json', }
+                    conetentType: 'multipart/form-data'
+
                 })
                 if (!response.ok) throw new Error('Network response was not ok. ', response);
                 
@@ -303,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             dataCarousel.style.display = '';
-            submitData.style.display = '';
+            //submitData.style.display = '';
             $('#uploadModal').modal('hide');
             const carouselInner = document.getElementById('carouselInner');
             data.fields.forEach((row, rowIndex) => {
@@ -365,21 +372,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Default to text
         return 'text';
     }   
-
-    /*function addFormSection(row, rowIndex, container) {
-        Object.entries(row).forEach(([fieldName, fieldValue]) => {
-            const inputType = getInputType(fieldName, fieldValue);
-            const input = document.createElement('input');
-            input.type = inputType;
-            input.name = `Rows[${rowIndex}][${fieldName}]`;
-            input.className = "form-control dynamic-field";
-            if (inputType === 'date') {
-                fieldValue = convertToDateInputValue(fieldValue);
-            }
-            input.value = fieldValue;
-            container.appendChild(createFieldGroup(fieldName, input));
-        });
-    } */
 
     function addFormSection(row, rowIndex, container) {
         Object.entries(row).forEach(([fieldName, fieldValue]) => {
