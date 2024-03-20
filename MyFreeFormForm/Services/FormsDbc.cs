@@ -176,7 +176,7 @@ namespace MyFreeFormForm.Services
 
                 form.FormNotes.Add(new FormNotes
                 {
-                    Note = notes,
+                    Notes = notes,
                     CreatedDate = DateTime.Now
                 });
 
@@ -247,7 +247,7 @@ namespace MyFreeFormForm.Services
                     return false;
                 }
 
-                note.Note = notes;
+                note.Notes = notes;
                 note.UpdatedDate = DateTime.Now;
 
                 _context.SaveChanges();

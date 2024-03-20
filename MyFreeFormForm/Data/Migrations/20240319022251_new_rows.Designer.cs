@@ -304,7 +304,7 @@ namespace MyFreeFormForm.Data.Migrations
                     b.Property<int>("FormId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Note")
+                    b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

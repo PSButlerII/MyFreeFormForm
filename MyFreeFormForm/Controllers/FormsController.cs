@@ -5,6 +5,7 @@ using MyFreeFormForm.Helpers;
 using MyFreeFormForm.Models;
 using MyFreeFormForm.Services;
 using Newtonsoft.Json;
+using Serilog.Sinks.SystemConsole.Themes;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -66,13 +67,20 @@ namespace MyFreeFormForm.Controllers
         {
             var model = new DynamicFormModel();
             // Pre-populate model.Fields with some example fields
-            /*            model.Fields.Add(new DynamicField { FieldName = "First Name", FieldType = FieldType.Text });
-                        model.Fields.Add(new DynamicField { FieldName = "Last Name", FieldType = FieldType.Text });
-                        model.Fields.Add(new DynamicField { FieldName = "Email", FieldType = FieldType.Email });
-                        model.Fields.Add(new DynamicField { FieldName = "Date of Birth", FieldType = FieldType.Date });*/
+          /*  model.Fields.Add(new DynamicField { FieldName = "First Name", FieldType = FieldType.Text });
+            model.Fields.Add(new DynamicField { FieldName = "Last Name", FieldType = FieldType.Text });
+            model.Fields.Add(new DynamicField { FieldName = "Email", FieldType = FieldType.Email });
+            model.Fields.Add(new DynamicField { FieldName = "Date of Birth", FieldType = FieldType.Date });*/
+            //TODO: add the submit button
+
 
             // Get the form instance from the database using the FormsDbc service getAllForms method
             //var formInstance =  _formsDbc.GetForms();
+
+         /*  TODO:Need to find a way to keep this updated with the latest form instances, so when I add a new form, it will be added to the list of forms.
+             One way to do this is to use SignalR to update the formInstance list when a new form is added.
+             Another way is to use a service to get the formInstance list from the database and update the list when a new form is added.
+             A third way is to use a service to get the formInstance list from the database and update the list when a new form is added, then use SignalR to update the list on the client side.*/
 
             var formInstance = _context.Forms
                 .AsEnumerable() // AsEnumerable or ToList, depending on your context's capabilities
@@ -89,86 +97,27 @@ namespace MyFreeFormForm.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-/*        [HttpPost("dynamic")]
+        [HttpPost("multipleDynamic")]
         public async Task<IActionResult> SubmitMultipleDynamicForms([FromBody] List<DynamicFormModel> models)
         {
+         /*   TODO: Need to wiring this method to the client side to submit multiple forms at once. Will need to deal with throttling and rate limiting to prevent abuse.  Since this will be going straight to a database, a rate limiter will be necessary to prevent abuse. To do this you will need to use a service to handle the rate limiting and throttling.  An example of this would be: 
+            var rateLimiter = new RateLimiter();
+            var result = rateLimiter.SubmitMultipleDynamicForms(models);
+            if (result.Success)
+            {
+                return Json(new { success = true, message = $"{models.Count} forms submitted successfully" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "An error occurred", errors = result.Errors });
+            }*/
+            
             Console.BackgroundColor = ConsoleColor.Green;
             //Console.WriteLine("SubmitDynamicForm: " + JsonConvert.SerializeObject(model));
 
             if (ModelState.IsValid)
             {
-                var form = await Request.ReadFormAsync();
-                var formName = form["FormName"];
-                var description = form["Description"];
-                var indices = new HashSet<int>();
-
-                // Regular expression to match field indices
-                var regex = new Regex(@"Fields\[(\d+)\]");
-
-                foreach (var key in form.Keys)
-                {
-                    var match = regex.Match(key);
-                    if (match.Success)
-                    {
-                        // If the key matches the pattern, add the index to the set
-                        indices.Add(int.Parse(match.Groups[1].Value));
-                    }
-                }
-                foreach (var index in indices)
-                {
-                    var fieldNameKey = $"Fields[{index}].FieldName";
-                    var fieldValueKey = $"Fields[{index}].FieldValue";
-                    var fieldTypeKey = $"Fields[{index}].FieldType";
-
-                    var fieldName = form[fieldNameKey];
-                    var fieldValue = form[fieldValueKey];
-                    var fieldType = form[fieldTypeKey];
-
-                    // Process each field here
-                    // For example, you might log them or add them to a list
-                    var myForm = new Form { FormName = formName, Description = description, CreatedDate = DateTime.Now };
-                    myForm.FormFields = new List<FormField>();
-
-                    for (int i = 0; i < fieldName.Count; i++)
-                    {
-                        var formField = new FormField
-                        {
-                            // if the FieldId is not set, it will be set to 0. check if the FieldId is 0, if it is, then set the FormId to the FormId of the form being created
-                            FormId = myForm.FormId,
-                            FieldName = fieldName[i],
-                            FieldType = fieldType[i],
-                            FieldValue = fieldValue[i],
-                            Required = true,
-                            FieldOptions = fieldOptions,
-                            Form = myForm
-                        };
-                        myForm.FormFields.Add(formField);
-                        _context.FormFields.Add(formField);
-
-                    }
-
-                    var formNotes = new FormNotes { FormId = myForm.FormId, Note = new List<string> { "Form submitted" } , CreatedDate = DateTime.Now };
-                    _context.FormNotes.Add(formNotes);
-
-                    myForm.FormNotes = new List<FormNotes> { formNotes };
-                    //await _context.SaveChangesAsync();
-
-                    _context.Forms.Add(myForm);
-                    await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = "Form submitted successfully" });
-                }
-            }
-            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-            return Json(new { success = false, message = "Validation failed", errors = errors });
-        }*/
-
-
-        [HttpPost("dynamic")]
-        public async Task<IActionResult> SubmitMultipleDynamicForms([FromBody] List<DynamicFormModel> models)
-        {
-            if (ModelState.IsValid)
-            {
-                foreach (var model in models)
+                foreach(var model in models)
                 {
                     // Directly access properties from the model
                     var formName = model.FormName;
@@ -201,7 +150,7 @@ namespace MyFreeFormForm.Controllers
                     var formNotes = new FormNotes
                     {
                         FormId = myForm.FormId, // Again, adjust as necessary
-                        Note = new List<string> { "Form submitted" },
+                        Notes = new List<string> { "Form submitted" },
                         CreatedDate = DateTime.Now
                     };
 
@@ -210,16 +159,146 @@ namespace MyFreeFormForm.Controllers
 
                     // Log or additional operations here
                 }
-
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = $"{models.Count} forms submitted successfully" });
+               
             }
-
-            // Handle validation errors
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
             return Json(new { success = false, message = "Validation failed", errors = errors });
         }
 
+        /*  [HttpPost("dynamic")]
+          public async Task<IActionResult> SubmitMultipleDynamicForms([FromBody] List<DynamicFormModel> models)
+          {
+              if (ModelState.IsValid)
+              {
+                  foreach (var model in models)
+                  {
+                      // Directly access properties from the model
+                      var formName = model.FormName;
+                      var description = model.Description;
+
+                      var myForm = new Form
+                      {
+                          FormName = formName,
+                          Description = description,
+                          CreatedDate = DateTime.Now,
+                          FormFields = new List<FormField>()
+                      };
+
+                      foreach (var field in model.Fields)
+                      {
+                          var formField = new FormField
+                          {
+                              FormId = myForm.FormId, // This will likely need adjustment since FormId might not be set until the form is saved
+                              FieldName = field.FieldName,
+                              FieldType = field.FieldType.ToString(),
+                              FieldValue = field.FieldValue,
+                              Required = true,
+                              // FieldOptions needs to be defined or fetched appropriately
+                              Form = myForm
+                          };
+                          myForm.FormFields.Add(formField);
+                          _context.FormFields.Add(formField);
+                      }
+
+                      var formNotes = new FormNotes
+                      {
+                          FormId = myForm.FormId, // Again, adjust as necessary
+                          Notes = new List<string> { "Form submitted" },
+                          CreatedDate = DateTime.Now
+                      };
+
+                      myForm.FormNotes = new List<FormNotes> { formNotes };
+                      _context.Forms.Add(myForm);
+
+                      // Log or additional operations here
+                  }
+
+                  await _context.SaveChangesAsync();
+                  return Json(new { success = true, message = $"{models.Count} forms submitted successfully" });
+              }
+
+              // Handle validation errors
+              var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+              return Json(new { success = false, message = "Validation failed", errors = errors });
+          }*/
+
+        [HttpPost("dynamic")]
+        public async Task<IActionResult> SubmitDynamicForm([FromForm] DynamicFormModel model)
+        {
+            Console.BackgroundColor = ConsoleColor.Green;
+            Console.WriteLine("SubmitDynamicForm: " + JsonConvert.SerializeObject(model));
+
+            if (ModelState.IsValid)
+            {
+                var form = await Request.ReadFormAsync();
+                var formName = form["FormName"];
+                var description = form["Description"];
+                var indices = new HashSet<int>();
+
+                // Regular expression to match field indices
+                var regex = new Regex(@"Fields\[(\d+)\]");
+
+                foreach (var key in form.Keys)
+                {
+                    var match = regex.Match(key);
+                    if (match.Success)
+                    {
+                        // If the key matches the pattern, add the index to the set
+                        indices.Add(int.Parse(match.Groups[1].Value));
+                    }
+                }
+                /*   var fields = form["Fields[0].FieldName"];
+                   var fieldValues = form["Fields[0].FieldValue"];
+                   var fieldTypes = form["Fields[0].FieldType"];*/
+                foreach (var index in indices)
+                {
+                    var fieldNameKey = $"Fields[{index}].FieldName";
+                    var fieldValueKey = $"Fields[{index}].FieldValue";
+                    var fieldTypeKey = $"Fields[{index}].FieldType";
+
+                    var fieldName = form[fieldNameKey];
+                    var fieldValue = form[fieldValueKey];
+                    var fieldType = form[fieldTypeKey];
+
+                    // Process each field here
+                    // For example, you might log them or add them to a list
+
+
+                    var myForm = new Form { FormName = formName, Description = description, CreatedDate = DateTime.Now };
+                    myForm.FormFields = new List<FormField>();
+
+                    for (int i = 0; i < fieldName.Count; i++)
+                    {
+                        var formField = new FormField
+                        {
+                            // if the FieldId is not set, it will be set to 0. check if the FieldId is 0, if it is, then set the FormId to the FormId of the form being created
+                            FormId = myForm.FormId,
+                            FieldName = fieldName[i],
+                            FieldType = fieldType[i],
+                            FieldValue = fieldValue[i],
+                            Required = true,
+                            FieldOptions = fieldOptions,
+                            Form = myForm
+                        };
+                        myForm.FormFields.Add(formField);
+                        _context.FormFields.Add(formField);
+
+                    }
+
+                    var formNotes = new FormNotes { FormId = myForm.FormId, Notes =new List<string> { "Form submitted" }, CreatedDate = DateTime.Now };
+                    _context.FormNotes.Add(formNotes);
+
+                    myForm.FormNotes = new List<FormNotes> { formNotes };
+                    //await _context.SaveChangesAsync();
+
+                    _context.Forms.Add(myForm);
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Form submitted successfully" });
+                }
+            }
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+            return Json(new { success = false, message = "Validation failed", errors = errors });
+        }
 
         /// <summary>
         ///  
@@ -266,26 +345,6 @@ namespace MyFreeFormForm.Controllers
             }
             return Json(new { success = false, message = "File upload failed" });
         }
-        
-/*        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("UploadedDocument")]
-        public IActionResult UploadedDocument(DynamicFormModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                // Process the dynamic form data here
-                return RedirectToAction("SuccessPage"); // Redirect to a success notification page
-            }            
-
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.WriteLine("UploadedDocuments: " + model);
-
-            return View("UploadedDocument", model);
-        }*/
 
         /// <summary>
         /// 
@@ -331,7 +390,6 @@ namespace MyFreeFormForm.Controllers
 
             return View(form);
         }
-
 
         // Add a method to update the form
         /// <summary>
@@ -397,7 +455,7 @@ namespace MyFreeFormForm.Controllers
 
                     }
 
-                    var formNotes = new FormNotes { FormId = myForm.FormId, Note = new List<string> { "Form submitted" }, CreatedDate = DateTime.Now };
+                    var formNotes = new FormNotes { FormId = myForm.FormId, Notes = new List<string> { "Form submitted" }, CreatedDate = DateTime.Now };
                     _context.FormNotes.Add(formNotes);
 
                     myForm.FormNotes = new List<FormNotes> { formNotes };
@@ -411,7 +469,6 @@ namespace MyFreeFormForm.Controllers
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
             return Json(new { success = false, message = "Validation failed", errors = errors });
         }
-
 
         /// <summary>
         ///  
@@ -461,7 +518,17 @@ namespace MyFreeFormForm.Controllers
             }
         }
 
-
+        /// <summary>
+        ///  This method will return the field types from the enum
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("FieldTypes")]
+        public IActionResult GetFieldTypes()
+        {
+            // Get the field types from the enum
+            var fieldTypes = Enum.GetNames(typeof(FieldType)).ToList();
+            return Json(new { success = true, message = "Field types loaded successfully", fieldTypes });
+        }
 
     }
 

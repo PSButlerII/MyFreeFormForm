@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const carouselInner = document.getElementById('carouselInner');
     let currentIndex = 0; // Track the current index of the carousel
     let totalItems = 0;
-    let progress = 0;
 
     function showSpinnerModal() {
         var spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'), {
@@ -27,21 +26,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }
     }
-
-    function updateProgressBar(percent) {
-        let progressBar = document.getElementById('loadingProgressBar');
-        progressBar.style.width = percent + '%';
-        progressBar.setAttribute('aria-valuenow', percent);
-        progressBar.innerText = percent + '% Complete'; // Optional: Display % inside the bar
-
-    }
-    function resetProgressBar() {
-        let progressBar = document.getElementById('loadingProgressBar');
-        progressBar.style.width = '0%';
-        progressBar.setAttribute('aria-valuenow', 0);
-        progressBar.innerText = '0% Complete'; // Optional: Display % inside the bar
-    }
-
     /*    document.getElementById('hideSpinnerBtn').addEventListener('click', function () {
             console.log('Hide/Show Spinner Button');
             var spinner = document.getElementById('spinnerModal');
@@ -58,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });*/
 
-
     $('#dataCarousel').carousel('pause');
+
     // Listen for the slid event
     carousel.addEventListener('slid.bs.carousel', function (event) {
         currentIndex = event.to;
@@ -67,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update the index display
         updateIndexDisplay();
     });
+
     /// Update the index display
     const updateIndexDisplay = () => {
         const totalItems = carousel.querySelectorAll('.carousel-item').length;
@@ -219,12 +204,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const select = document.createElement('select');
         select.className = 'form-control';
         select.name = `Fields[${index}].FieldType`;
-        ['text', 'email', 'number', 'date'].forEach(type => {
+        // TODO: These fields are actually in an enum, so you can get the options from the server
+
+     /*   ['text', 'email', 'number', 'date'].forEach(type => {
             const option = document.createElement('option');
             option.value = type;
             option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
             select.appendChild(option);
-        });
+        });*/
+
+        //get the field types from the server
+        // Fetch the field types from the server
+      fetch('FieldTypes')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Field Types:', data);
+                data.fieldTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+                    select.appendChild(option);
+                });
+            });
+
         return select;
     }
 
@@ -335,8 +337,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         }
-    }
-    
+    }    
 
     // Ensure updateFieldNames function exists and is updated to handle the new structure
     function updateFieldNames() {
@@ -368,7 +369,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.timeEnd('uploadForm')
 
                 console.time('handleUploadResponse')
-                handleUploadResponse(data);
+                handleUploadResponse(data);              
+
                 console.timeEnd('handleUploadResponse')
             } catch (error) {
                 console.error('Error:', error);
@@ -387,6 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             dataCarousel.style.display = '';
+
             //submitData.style.display = '';
             $('#uploadModal').modal('hide');
             const carouselInner = document.getElementById('carouselInner');
@@ -424,11 +427,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 hideSpinnerModal();
             });
             // Update counter   
+
         }
         else {
             console.error('Upload failed', data.message);
         }
-
+        $('#staticSubmitBtn').hide();
     }
 
     function resetCarousel() {
@@ -567,8 +571,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     //hideSpinner();
-
-    window.loadForms = async function(formIds) {
+    async function formLoader(formIds) {
         // Construct the URL for the LoadForms action
         // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
         console.time('loadForm')
@@ -640,6 +643,88 @@ document.addEventListener('DOMContentLoaded', function () {
                     setupFormSubmission(form, rowIndex);
                 });
 
+            }
+            console.timeEnd('loadResponse')
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    window.loadForms = async function(formIds) {
+        // Construct the URL for the LoadForms action
+        // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
+        console.time('loadForm')
+        const url = `/Forms/LoadForms?ids=${formIds}`;
+        console.log(url);
+        // Fetch the forms from the server
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                //headers: { 'Accept': 'application/json', }
+            });
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const data = await response.json();
+            console.timeEnd('loadForm')
+
+            console.time('loadResponse')
+            console.log('Forms loaded:', data);
+            // Process the loaded forms
+            if (data.success && data.forms.length) {
+                const clearFields = confirm('Do you want to clear existing fields before adding new ones?');
+                if (clearFields) {
+                    resetCarousel();
+                    resetForm();
+                }
+                const firstForm = data.forms[0];
+
+                // Update Form Name and Description fields
+                document.getElementById('FormName').value = firstForm.FormName || '';
+                document.getElementById('Description').value = firstForm.Description || '';
+
+                // because the data is coming back as response.json, the data is already an object. No need to parse it, just use it to add the forms
+                dataCarousel.style.display = '';
+
+                //staticSubmitBtn.style.display = 'hide'
+                //submitData.style.display = '';
+                //$('#uploadModal').modal('hide');
+                const carouselInner = document.getElementById('carouselInner');
+                data.forms.forEach((row, rowIndex) => {
+                    console.log(`My Form ${rowIndex}:`, row);
+
+                    const form = document.createElement('form');
+                    form.action = 'dynamic'; // Adjust if your application's route is different
+                    form.method = "POST";
+                    form.className = "form-group";
+                    form.id = `form-${rowIndex}`;
+
+                    const carouselItem = document.createElement('div');
+                    carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
+                    carouselItem.classList.add('carousel-item');
+                    if (rowIndex === 0) carouselItem.classList.add('active');
+
+                    addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
+
+                    const submitBtn = document.createElement('button');
+                    submitBtn.type = "submit";
+                    submitBtn.className = "btn btn-primary";
+                    submitBtn.textContent = "Submit Form";
+
+                    // Append button to form, then form to carouselItem
+                    form.appendChild(submitBtn);
+                    //form.appendChild(removeBtn);
+                    carouselItem.appendChild(form);
+                    carouselInner.appendChild(carouselItem);
+
+                    // Count the number of forms
+                    const formCount = document.querySelectorAll('.carousel-item').length;
+                    totalItems = formCount;
+                    updateIndexDisplay();
+                    // Setup form submission
+                    setupFormSubmission(form, rowIndex);
+                });
+                $('#staticSubmitBtn').hide();
             }
             console.timeEnd('loadResponse')
 

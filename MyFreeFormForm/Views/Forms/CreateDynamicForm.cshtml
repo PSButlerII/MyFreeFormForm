@@ -1,6 +1,7 @@
 ﻿@using MyFreeFormForm.Helpers
 @model MyFreeFormForm.Models.DynamicFormModel
 @using static MyFreeFormForm.Models.Form
+@using static MyFreeFormForm.Models.FormNotes
 
 <div class="container-fluid">
     <div class="row">
@@ -13,9 +14,21 @@
                 </div>
             </div>
         </div>
-
+        <!--Form Notes-->
+@* 
+        <div class="col-md-3">
+            <div class="p-3 border
+                bg-light">
+                <h5>Form Notes</h5>
+                <div id="formPanel">
+                    @Html.Partial("_FormNotes")
+                </div>
+            </div>
+        </div>
+ *@
         <!-- Main content area -->
         <div class="col-md-9">
+
             <!-- Button Div -->
             <div id="Btn-Div" class="mb-3">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
@@ -23,7 +36,9 @@
                 </button>
                 <button type="button" id="addFieldBtn" class="btn btn-primary">Add Field</button>
                 <button asp-action="SubmitDynamicForm" asp-route-action="dynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
-                @* <button type="button" id="hideSpinnerBtn" class="btn-secondary">hide spinner</button> *@
+                <button type="button" id="createTemplate" disabled="true" class="btn btn-primary">Create template</button>
+                @* //TODO:  Need to implement the function that will enable the create template feature *@
+                @* <button type="button" id="hideSpinnerBtn" class="btn-secondary">hide spinner</button>*@
             </div>
 
             <!-- Form Number Input -->
@@ -51,11 +66,11 @@
                                <div class="form-group dynamic-field" id="field-group-@i">
                                 <label>@Model.Fields[i].FieldName</label>
                                 <input id="Field-Value" placeholder="" title="Field-vaule" type="@Model.Fields[i].FieldType.ToString().ToLower()" name="Fields[@i].FieldName" class="form-control" />
-
                                 <!-- Include a button to remove the field -->
                                 <button type="button" class="remove-field-btn">Remove</button>
                             </div>
                         }
+                        <button id="staticSubmitBtn" style="display:block" type="submit" class="btn btn-primary">Submit Form</button>
                     </form>                
             </div>
 

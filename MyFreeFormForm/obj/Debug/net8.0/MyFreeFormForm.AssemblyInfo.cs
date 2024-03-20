@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MyFreeFormForm")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+41da6e8f8a33a1116187c9d0932140b2ee80c54c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0e7f0e063907c7321a9ecb48e5932ac7dee4892a")]
 [assembly: System.Reflection.AssemblyProductAttribute("MyFreeFormForm")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MyFreeFormForm")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
