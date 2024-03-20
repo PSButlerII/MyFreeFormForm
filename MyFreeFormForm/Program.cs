@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MyFreeFormForm.Data;
 using MyFreeFormForm.Helpers;
+using MyFreeFormForm.Services;
 using Serilog;
 using Serilog.Events;
 
@@ -35,6 +36,7 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddLogging();
 
+builder.Services.AddScoped<FormsDbc>();
 
 var app = builder.Build();
 

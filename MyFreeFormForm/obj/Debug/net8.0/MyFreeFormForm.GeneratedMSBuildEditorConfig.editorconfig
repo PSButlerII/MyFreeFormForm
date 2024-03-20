@@ -194,8 +194,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRm9ybXNcU3RhdGljRm9ybS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/prest/source/repos/MyFreeFormForm/MyFreeFormForm/Views/Forms/UploadedDocument.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRm9ybXNcVXBsb2FkZWREb2N1bWVudC5jc2h0bWw=
+[C:/Users/prest/source/repos/MyFreeFormForm/MyFreeFormForm/Views/Forms/_UploadedDocuments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRm9ybXNcX1VwbG9hZGVkRG9jdW1lbnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/prest/source/repos/MyFreeFormForm/MyFreeFormForm/Views/Home/Index.cshtml]
@@ -208,6 +208,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/prest/source/repos/MyFreeFormForm/MyFreeFormForm/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/prest/source/repos/MyFreeFormForm/MyFreeFormForm/Views/Shared/_loadingSpinner.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9sb2FkaW5nU3Bpbm5lci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/prest/source/repos/MyFreeFormForm/MyFreeFormForm/Views/Shared/_LoginPartial.cshtml]

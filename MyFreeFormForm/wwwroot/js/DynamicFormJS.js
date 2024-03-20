@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    console.time('DynamicFormJS');
     const form = document.querySelector('form');
     const carousel = document.getElementById('dataCarousel');
     var carouselInstance = bootstrap.Carousel.getOrCreateInstance(carousel); // Bootstrap 5 way to reinitialize or get instance
@@ -9,24 +10,56 @@ document.addEventListener('DOMContentLoaded', function () {
     let totalItems = 0;
     let progress = 0;
 
-    // Simulate loading screen
-    /*const interval = setInterval(() => {
-        if (progress >= 100) {
-            clearInterval(interval);
-            // Hide loading screen
-            document.getElementById('loadingScreen').style.display = 'none';
-        } else {
-            progress += 10; // Increment progress
-            const progressBar = document.getElementById('loadingProgressBar');
-            progressBar.style.width = progress + '%';
-            progressBar.setAttribute('aria-valuenow', progress);
-        }
-    }, 500);*/ // Update every 500ms - for demonstration purposes only
+    function showSpinnerModal() {
+        var spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'), {
+            backdrop: 'static', // Optional: Include a backdrop that doesn't close the modal when clicked.
+            keyboard: false // Optional: Prevent closing the modal with the keyboard.
+        });
+        console.log('Showing Spinner')
+        spinnerModal.show();
+    }
 
-    //$('#dataCarousel').carousel({ interval: false});
+    function hideSpinnerModal() {
+        var spinnerModalEl = document.getElementById('spinnerModal');
+        var spinnerModal = bootstrap.Modal.getInstance(spinnerModalEl);
+        if (spinnerModal) {
+            setTimeout(spinnerModal.hide(), 3, console.log('Hiding Spinner'));
+
+        }
+    }
+
+    function updateProgressBar(percent) {
+        let progressBar = document.getElementById('loadingProgressBar');
+        progressBar.style.width = percent + '%';
+        progressBar.setAttribute('aria-valuenow', percent);
+        progressBar.innerText = percent + '% Complete'; // Optional: Display % inside the bar
+
+    }
+    function resetProgressBar() {
+        let progressBar = document.getElementById('loadingProgressBar');
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', 0);
+        progressBar.innerText = '0% Complete'; // Optional: Display % inside the bar
+    }
+
+    /*    document.getElementById('hideSpinnerBtn').addEventListener('click', function () {
+            console.log('Hide/Show Spinner Button');
+            var spinner = document.getElementById('spinnerModal');
+            if (spinner.style.display === 'none' || spinner.style.display === '') {
+                showSpinnerModal();
+                //sleep for 5 seconds
+                setTimeout(hideSpinnerModal, 5000);
+                //hideSpinnerModal();
+            } else {
+                hideSpinnerModal();
+                setTimeout(showSpinnerModal, 5000);
+                setTimeout(hideSpinnerModal, 5000);
+    
+            }
+        });*/
+
 
     $('#dataCarousel').carousel('pause');
-
     // Listen for the slid event
     carousel.addEventListener('slid.bs.carousel', function (event) {
         currentIndex = event.to;
@@ -60,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
             addField('staticForm');
         }
     }
-    
+
     document.querySelector('#customNextBtn').addEventListener('click', handleCarouselControlClick);
 
     document.querySelector('#customPrevBtn').addEventListener('click', handleCarouselControlClick);
@@ -240,23 +273,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
             // AJAX submission logic here for SubmitDynamicForm in the controller
+            //showSpinnerModal()
             try {
                 const response = await fetch(this.action, {
                     method: 'POST',
                     body: formData,
                     conetentType: 'multipart/form-data'
-
                 })
                 if (!response.ok) throw new Error('Network response was not ok. ', response);
-                
+
                 const data = await response.json();
 
                 console.timeEnd('setupFormSubmission')
+                //loadForms(data.ids);
                 console.log(data);
 
             } catch (error) {
                 console.error('Error:', error);
             }
+            //hideSpinnerModal();
             console.log(`Form ${rowIndex + 1} submitted`);
             // On successful submission:
             // Show success message
@@ -264,6 +299,44 @@ document.addEventListener('DOMContentLoaded', function () {
             // Optionally, move to the next carousel item
         });
     }
+
+    //Need to create another function to handle the form submission of all of the forms that are in the carousel or the static form
+    // This function will be called when the user clicks the submit button
+    // This function will loop through all of the forms and submit them
+
+    // Add event listener to the submit button
+    //document.getElementById('submitData').addEventListener('click', submitAllForms);
+    document.getElementById('submitAllData').addEventListener('click', function () {
+        submitAllForms();
+    });
+
+    // Function to submit all forms
+    async function submitAllForms() {
+        // Get all forms from the carousel and the static form
+        const forms = document.querySelectorAll('.carousel-item form, #staticForm');
+        console.log('All Forms:', forms);
+        // Loop through each form and submit it
+        for (let i = 0; i < forms.length; i++) {
+            const form = forms[i];
+            console.log('Form:', form);
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    conetentType: 'multipart/form-data'
+                })
+                if (!response.ok) throw new Error('Network response was not ok. ', response);
+
+                //const data = await response.json();
+            }
+            catch (error) {
+                console.error('Error:', error);
+            }
+
+
+        }
+    }
+    
 
     // Ensure updateFieldNames function exists and is updated to handle the new structure
     function updateFieldNames() {
@@ -281,23 +354,27 @@ document.addEventListener('DOMContentLoaded', function () {
         uploadForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const formData = new FormData(this);
+            console.log('Show Spinner');
+            showSpinnerModal();
             try {
                 const response = await fetch(this.action, {
                     method: 'POST',
                     body: formData,
                     headers: { 'Accept': 'application/json', }
                 });
-
                 if (!response.ok) throw new Error('Network response was not ok.');
                 const data = await response.json();
 
                 console.timeEnd('uploadForm')
+
                 console.time('handleUploadResponse')
                 handleUploadResponse(data);
                 console.timeEnd('handleUploadResponse')
             } catch (error) {
                 console.error('Error:', error);
             }
+            //hideSpinnerModal();
+            
         });
     }
 
@@ -344,13 +421,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateIndexDisplay();
                 // Setup form submission
                 setupFormSubmission(form, rowIndex);
+                hideSpinnerModal();
             });
-
-            // Update counter
-
-        } else {
+            // Update counter   
+        }
+        else {
             console.error('Upload failed', data.message);
         }
+
     }
 
     function resetCarousel() {
@@ -373,33 +451,72 @@ document.addEventListener('DOMContentLoaded', function () {
         return 'text';
     }   
 
-    function addFormSection(row, rowIndex, container) {
-        Object.entries(row).forEach(([fieldName, fieldValue]) => {
-            // Assuming all fields are to be treated as DynamicFields
-            const inputType = getInputType(fieldName, fieldValue);
+    function addFormSection(form, rowIndex, container) {     
+        
+        //showSpinnerModal();
+        const fields = form.Fields || [];
+        const fieldsArray = form.Fields ? JSON.parse(form.Fields) : [];
+        const totalFields = fieldsArray.length;
+        
+        if (fieldsArray.length>0) {
+            // Now `fieldsArray` is an array, you can iterate over it
+            //const fieldsArray = JSON.parse(form.Fields);
+            // get a count of the number of forms in the array
+            //console.log('Field Count from fieldArray:', fieldCount)
+            fieldsArray.forEach((field, index) => {
+                const { FieldName, FieldType, FieldValue } = field;
 
-            // Creating inputs for FieldName, FieldType, and FieldValue
-            const fieldNameInput = document.createElement('input');
-            fieldNameInput.type = 'hidden'; // Hidden because we don't need to display it
-            fieldNameInput.name = `Fields[${rowIndex}].FieldName`;
-            fieldNameInput.value = fieldName;
+                // Create inputs for FieldName, FieldType, and FieldValue
+                const fieldNameInput = createInputField(`Fields[${rowIndex}].FieldName`, FieldName, 'hidden');
+                fieldNameInput.value = FieldName; // Set the value for hidden input
 
-            const fieldTypeInput = document.createElement('input');
-            fieldTypeInput.type = 'hidden'; // Hidden, assuming you have logic to determine this
-            fieldTypeInput.name = `Fields[${rowIndex}].FieldType`;
-            fieldTypeInput.value = inputType; // This might need adjustment based on how you define FieldType
+                const fieldTypeInput = createInputField(`Fields[${rowIndex}].FieldType`, FieldType, 'hidden');
+                fieldTypeInput.value = FieldType; // This might need adjustment based on how you define FieldType
 
-            const fieldValueInput = document.createElement('input');
-            fieldValueInput.type = inputType;
-            fieldValueInput.name = `Fields[${rowIndex}].FieldValue`;
-            fieldValueInput.className = "form-control dynamic-field";
-            fieldValueInput.value = fieldValue;
+                const fieldValueInput = createInputField(`Fields[${rowIndex}].FieldValue`, FieldValue, FieldType);
+                fieldValueInput.value = FieldValue; // Assign the field value
 
-            // Append these inputs to the container
-            container.appendChild(createFieldGroup(fieldName, fieldValueInput)); // Only display the value input
-            container.appendChild(fieldNameInput); // Add to the form, but it's hidden
-            container.appendChild(fieldTypeInput); // Add to the form, but it's hidden
-        });
+                // Append the field name and type as hidden inputs, and field value as its appropriate type
+                container.appendChild(fieldNameInput);
+                container.appendChild(fieldTypeInput);
+                container.appendChild(createFieldGroup(FieldName, fieldValueInput)); // Only display the value input
+            });
+
+        }
+        else {            
+            // get a count of the number of forms in the object
+            // console.log('Field Count from Object:', fieldCount);
+            // showSpinnerModal();
+           // const totalFields = Object.keys(form).length;
+            Object.entries(form).forEach(([fieldName, fieldValue],index) => {
+                // Assuming all fields are to be treated as DynamicFields
+
+                const inputType = getInputType(fieldName, fieldValue);
+
+                // Creating inputs for FieldName, FieldType, and FieldValue
+                const fieldNameInput = document.createElement('input');
+                fieldNameInput.type = 'hidden'; // Hidden because we don't need to display it
+                fieldNameInput.name = `Fields[${rowIndex}].FieldName`;
+                fieldNameInput.value = fieldName;
+
+                const fieldTypeInput = document.createElement('input');
+                fieldTypeInput.type = 'hidden'; // Hidden, assuming you have logic to determine this
+                fieldTypeInput.name = `Fields[${rowIndex}].FieldType`;
+                fieldTypeInput.value = inputType; // This might need adjustment based on how you define FieldType
+
+                const fieldValueInput = document.createElement('input');
+                fieldValueInput.type = inputType;
+                fieldValueInput.name = `Fields[${rowIndex}].FieldValue`;
+                fieldValueInput.className = "form-control dynamic-field";
+                fieldValueInput.value = fieldValue;
+
+                // Append these inputs to the container
+                container.appendChild(createFieldGroup(fieldName, fieldValueInput)); // Only display the value input
+                container.appendChild(fieldNameInput); // Add to the form, but it's hidden
+                container.appendChild(fieldTypeInput); // Add to the form, but it's hidden
+                
+            });            
+        }
     }
     
     function convertToDateInputValue(value) {
@@ -431,5 +548,105 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetForm() {
         document.querySelectorAll('.dynamic-field').forEach(fieldGroup => fieldGroup.remove());
     }
-    document.getElementById('loadingScreen').style.display = 'none';
+
+    document.getElementById('goToFormBtn').addEventListener('click', function () {
+        // Retrieve the user input from the form number input field
+        const formNumber = parseInt(document.getElementById('formNumberInput').value, 10);
+
+        // Validate the input to ensure it is within the range of existing forms
+        if (!isNaN(formNumber) && formNumber >= 1 && formNumber <= totalItems) {
+            // Convert the user-friendly form number to a 0-based index for the carousel
+            const formIndex = formNumber - 1;
+
+            // Use the goToSlide function to navigate to the selected form
+            goToSlide(formIndex);
+            updateFieldNames();
+        } else {
+            alert("Please enter a valid form number.");
+        }
+    });
+
+    //hideSpinner();
+
+    window.loadForms = async function(formIds) {
+        // Construct the URL for the LoadForms action
+        // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
+        console.time('loadForm')
+        const url = `/Forms/LoadForms?ids=${formIds}`;
+        console.log(url);
+        // Fetch the forms from the server
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                //headers: { 'Accept': 'application/json', }
+            });
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const data = await response.json();
+            console.timeEnd('loadForm')
+
+            console.time('loadResponse')
+            console.log('Forms loaded:', data);
+            // Process the loaded forms
+            if (data.success && data.forms.length) {
+                const clearFields = confirm('Do you want to clear existing fields before adding new ones?');
+                if (clearFields) {
+                    resetCarousel();
+                    resetForm();
+                }
+                const firstForm = data.forms[0];
+
+                // Update Form Name and Description fields
+                document.getElementById('FormName').value = firstForm.FormName || '';
+                document.getElementById('Description').value = firstForm.Description || '';
+
+                // because the data is coming back as response.json, the data is already an object. No need to parse it, just use it to add the forms
+                dataCarousel.style.display = '';
+                //submitData.style.display = '';
+                //$('#uploadModal').modal('hide');
+                const carouselInner = document.getElementById('carouselInner');
+                data.forms.forEach((row, rowIndex) => {
+                    console.log(`My Form ${rowIndex}:`, row);
+
+                    const form = document.createElement('form');
+                    form.action = 'dynamic'; // Adjust if your application's route is different
+                    form.method = "POST";
+                    form.className = "form-group";
+                    form.id = `form-${rowIndex}`;
+
+                    const carouselItem = document.createElement('div');
+                    carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
+                    carouselItem.classList.add('carousel-item');
+                    if (rowIndex === 0) carouselItem.classList.add('active');
+
+                    addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
+
+                    const submitBtn = document.createElement('button');
+                    submitBtn.type = "submit";
+                    submitBtn.className = "btn btn-primary";
+                    submitBtn.textContent = "Submit Form";
+
+                    // Append button to form, then form to carouselItem
+                    form.appendChild(submitBtn);
+                    //form.appendChild(removeBtn);
+                    carouselItem.appendChild(form);
+                    carouselInner.appendChild(carouselItem);
+
+                    // Count the number of forms
+                    const formCount = document.querySelectorAll('.carousel-item').length;
+                    totalItems = formCount;
+                    updateIndexDisplay();
+                    // Setup form submission
+                    setupFormSubmission(form, rowIndex);
+                });
+
+            }
+            console.timeEnd('loadResponse')
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    console.timeEnd('DynamicFormJS');
 });

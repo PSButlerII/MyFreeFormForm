@@ -15,8 +15,9 @@ namespace MyFreeFormForm.Models
        // FormName and Description properties in the Form model
        public string FormName { get; set; }
        public string Description { get; set; }
+       public List<DynamicField> Fields { get; set; } = new List<DynamicField>();
 
-        public List<DynamicField> Fields { get; set; } = new List<DynamicField>();
+       //public Form FormInstance { get; set; }
     }
 
 }
