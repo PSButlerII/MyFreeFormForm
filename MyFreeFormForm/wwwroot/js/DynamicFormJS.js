@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.time('DynamicFormJS');
     const form = document.querySelector('form');
+    // const forms = document.querySelectorAll('.carousel-item form, #staticForm');
     const carousel = document.getElementById('dataCarousel');
     var carouselInstance = bootstrap.Carousel.getOrCreateInstance(carousel); // Bootstrap 5 way to reinitialize or get instance
     carouselInstance.cycle();
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const carouselInner = document.getElementById('carouselInner');
     let currentIndex = 0; // Track the current index of the carousel
     let totalItems = 0;
+    let noteIndex = 1; // Start with 1 because 0 is already in the HTML
 
     function showSpinnerModal() {
         var spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'), {
@@ -25,22 +27,38 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(spinnerModal.hide(), 3, console.log('Hiding Spinner'));
 
         }
-    }
-    /*    document.getElementById('hideSpinnerBtn').addEventListener('click', function () {
-            console.log('Hide/Show Spinner Button');
-            var spinner = document.getElementById('spinnerModal');
-            if (spinner.style.display === 'none' || spinner.style.display === '') {
-                showSpinnerModal();
-                //sleep for 5 seconds
-                setTimeout(hideSpinnerModal, 5000);
-                //hideSpinnerModal();
-            } else {
-                hideSpinnerModal();
-                setTimeout(showSpinnerModal, 5000);
-                setTimeout(hideSpinnerModal, 5000);
-    
+    }      
+
+   /* document.getElementById('addNoteBtn').addEventListener('click', function () {
+        let noteSection = document.getElementById('notesSection');
+
+        // Check if noteSection exists, create it if not
+        if (!noteSection) {
+            noteSection = document.createElement('div');
+            noteSection.id = 'notesSection';
+            // Append the newly created section where it needs to go in your form
+            const dynamicForm = document.getElementById('dynamicForm'); // Assuming this is your form's ID
+            dynamicForm.appendChild(noteSection);
+        }
+
+        const newNoteInput = `<div class="input-group mb-3" id="noteInput${noteIndex}">
+        <input type="text" class="form-control" name="FormNotes[${noteIndex}]" placeholder="Add a note" aria-label="Add a note">
+        <button class="btn btn-outline-secondary removeNoteBtn" type="button">Remove</button>
+        </div>`;
+        noteSection.insertAdjacentHTML('beforeend', newNoteInput);
+        noteIndex++;
+    });
+
+
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.classList.contains('removeNoteBtn')) {
+            const noteGroup = e.target.closest('.input-group');
+            if (noteGroup) {
+                noteGroup.remove(); // Remove this note field
             }
-        });*/
+        }
+    });*/
+
 
     $('#dataCarousel').carousel('pause');
 
@@ -182,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fieldValueInput.type = e.target.value;
         });
     }
+
     // Helper function to create input fields
     function createInputField(name, placeholder, type) {
         const input = document.createElement('input');
@@ -255,6 +274,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return group;
     }
 
+    //Need to create another function to handle the form submission of all of the forms that are in the carousel or the static form
+    // This function will be called when the user clicks the submit button
+    // This function will loop through all of the forms and submit them
+
+    // Add event listener to the submit button
+    //document.getElementById('submitData').addEventListener('click', submitAllForms);
+
     async function setupFormSubmission(form, rowIndex) {
         form.addEventListener('submit', async function (e) {
             // TODO: Get the value for the field name associated with the form.  current it is not being added to the form data.
@@ -262,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             console.time('setupFormSubmission')
             console.log('Form data from parameters', form)
+
             const formData = new FormData(this);
             formData.append('FormName', document.getElementById('FormName').value);
             formData.append('Description', document.getElementById('Description').value);
@@ -274,13 +301,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 //formData.set(key, value);
 
             }
-            // AJAX submission logic here for SubmitDynamicForm in the controller
-            //showSpinnerModal()
+
             try {
                 const response = await fetch(this.action, {
                     method: 'POST',
                     body: formData,
-                    conetentType: 'multipart/form-data'
+                    contentType: 'multipart/form-data'
                 })
                 if (!response.ok) throw new Error('Network response was not ok. ', response);
 
@@ -302,42 +328,45 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    //Need to create another function to handle the form submission of all of the forms that are in the carousel or the static form
-    // This function will be called when the user clicks the submit button
-    // This function will loop through all of the forms and submit them
-
-    // Add event listener to the submit button
-    //document.getElementById('submitData').addEventListener('click', submitAllForms);
-    document.getElementById('submitAllData').addEventListener('click', function () {
+    document.getElementById('submitAllData').addEventListener('click', function (e) {
+        e.preventDefault();
         submitAllForms();
     });
 
-    // Function to submit all forms
     async function submitAllForms() {
-        // Get all forms from the carousel and the static form
         const forms = document.querySelectorAll('.carousel-item form, #staticForm');
-        console.log('All Forms:', forms);
-        // Loop through each form and submit it
-        for (let i = 0; i < forms.length; i++) {
-            const form = forms[i];
-            console.log('Form:', form);
-            try {
-                const response = await fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    conetentType: 'multipart/form-data'
-                })
-                if (!response.ok) throw new Error('Network response was not ok. ', response);
-
-                //const data = await response.json();
-            }
-            catch (error) {
-                console.error('Error:', error);
-            }
-
-
+        if (forms.length === 0) {
+            console.error('No forms found.');
+            return;
         }
-    }    
+        for (const form of forms) {
+            const formData = new FormData(form);
+            formData.append('FormName', document.getElementById('FormName').value);
+            formData.append('Description', document.getElementById('Description').value);
+            try {
+                console.time('FormSubmission');
+                const response = await fetch('dynamic', {
+                    method: 'POST',
+                    body: formData // No need to set Content-Type; it will be set automatically with boundary
+                });
+                //const data = await response.json();
+                /*if (!data.success) {
+                    console.error('Submission failed:', data.message);
+                    data.errors.forEach((error, index) => {
+                        console.error(`Error ${index + 1}:`, error);
+                    });
+                } else {
+                    console.log('Submission success:', data.message);
+                }*/
+                if (!response.ok) throw new Error('Network response was not ok.');
+                console.log('Submission success:', await response.json());
+            } catch (error) {
+                console.error('Error during form submission:', error);
+            } finally {
+                console.timeEnd('FormSubmission');
+            }
+        }
+    }
 
     // Ensure updateFieldNames function exists and is updated to handle the new structure
     function updateFieldNames() {
@@ -523,22 +552,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    function convertToDateInputValue(value) {
-
-        const dateParts = value.split('/');
-        if (dateParts.length === 3) {
-            // If an appropriate date format does not exits for the date, find the the date in the string and convert it to a date
-            const date = new Date(value);
-            if (!isNaN(date.getTime())) { // Check if the date is valid
-                // Format the date as YYYY-MM-DD
-                return date.toISOString().split('T')[0];
-            }
-                
-        }
-        // Return original value if conversion isn't possible
-        return value;
-    }
-
     function updateFieldNames() {
         document.querySelectorAll('.dynamic-field').forEach((fieldGroup, index) => {
             const input = fieldGroup.querySelector('input[type="text"]');

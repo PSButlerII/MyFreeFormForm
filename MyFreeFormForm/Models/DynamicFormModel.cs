@@ -16,6 +16,8 @@ namespace MyFreeFormForm.Models
        public string FormName { get; set; }
        public string Description { get; set; }
        public List<DynamicField> Fields { get; set; } = new List<DynamicField>();
+        //Maybe I need to add the FormNotes property here.  This way I can pass the notes to the FormNotes model
+       //public List<FormNotes> FormNotes { get; set; } = new List<FormNotes>();
 
        //public Form FormInstance { get; set; }
     }
