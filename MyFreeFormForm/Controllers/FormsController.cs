@@ -168,6 +168,7 @@ namespace MyFreeFormForm.Controllers
                             FieldName = fieldName[i],
                             FieldValue = fieldValue[i],
                             FieldType = fieldType
+                            // TODO: Need to uncomment the notes list in the dynamic model first, and then and it to the submission set parser.
                         };
 
                         // Logging or other processing
@@ -188,8 +189,6 @@ namespace MyFreeFormForm.Controllers
             }
             return Json(new { success = false, message = "Form submission failed" });
         }
-
-
 
         /// <summary>
         ///  
@@ -431,87 +430,6 @@ namespace MyFreeFormForm.Controllers
             ViewBag.FormInstance = formInstance;
         }
 
-/*
-        public async Task ProcessFormSubmissionsAsync(FormCollection form)
-        {
-            while (FormSubmissionQueue.Count > 0)
-            {
-                // Deserialize the form submission from the queue
-
-                //var form = await Request.ReadFormAsync();
-                var formName = form["FormName"];
-                var description = form["Description"];
-                var indices = new HashSet<int>();
-
-                // Regular expression to match field indices
-                var regex = new Regex(@"Fields\[(\d+)\]");
-
-                foreach (var key in form.Keys)
-                {
-                    var match = regex.Match(key);
-                    if (match.Success)
-                    {
-                        // If the key matches the pattern, add the index to the set
-                        indices.Add(int.Parse(match.Groups[1].Value));
-                    }
-                }
-                var fieldValues = form["Fields[0].FieldValue"];
-                var fieldTypes = form["Fields[0].FieldType"]; 
-                foreach (var index in indices)
-                {
-                    var fieldNameKey = $"Fields[{index}].FieldName";
-                    var fieldValueKey = $"Fields[{index}].FieldValue";
-                    var fieldTypeKey = $"Fields[{index}].FieldType";
-
-                    var fieldName = form[fieldNameKey];
-                    var fieldValue = form[fieldValueKey];
-                    var fieldType = form[fieldTypeKey];
-
-                    // Process each field here
-                    // For example, you might log them or add them to a list
-
-
-                    var myForm = new Form { FormName = formName, Description = description, CreatedDate = DateTime.Now };
-                    myForm.FormFields = new List<FormField>();
-
-                    for (int i = 0; i < fieldName.Count; i++)
-                    {
-                        var formField = new FormField
-                        {
-                            // if the FieldId is not set, it will be set to 0. check if the FieldId is 0, if it is, then set the FormId to the FormId of the form being created
-                            FormId = myForm.FormId,
-                            FieldName = fieldName[i],
-                            FieldType = fieldType[i],
-                            FieldValue = fieldValue[i],
-                            Required = true,
-                            FieldOptions = fieldOptions,
-                            Form = myForm
-                        };
-                        myForm.FormFields.Add(formField);
-                        _context.FormFields.Add(formField);
-
-                    }
-
-                    var formNotes = new FormNotes { FormId = myForm.FormId, Notes = new List<string> { "Form submitted" }, CreatedDate = DateTime.Now };
-                    _context.FormNotes.Add(formNotes);
-
-                    myForm.FormNotes = new List<FormNotes> { formNotes };
-                    //await _context.SaveChangesAsync();
-
-                    //FormSubmissionQueue.Enqueue(model);
-                    _context.Forms.Add(myForm);
-                    await _context.SaveChangesAsync();
-                    //update the formInstance list
-                    var formInstance = _context.Forms
-                        .AsEnumerable() // AsEnumerable or ToList, depending on your context's capabilities
-                        .GroupBy(f => f.FormName)
-                        .ToDictionary(g => g.Key, g => g.Select(f => f.FormId).ToList());
-                    // Then pass the formInstance to the view
-                    ViewBag.FormInstance = formInstance;
-                    //return Json(new { success = true, message = "Form submitted successfully" });
-                }
-            }
-        }*/
     }
 }
 
