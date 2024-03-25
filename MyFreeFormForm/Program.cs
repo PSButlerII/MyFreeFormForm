@@ -5,6 +5,7 @@ using MyFreeFormForm.Helpers;
 using MyFreeFormForm.Services;
 using Serilog;
 using Serilog.Events;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +18,10 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -37,6 +40,21 @@ builder.Services.AddSession(options =>
 builder.Services.AddLogging();
 
 builder.Services.AddScoped<FormsDbc>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+builder.Services.AddHostedService<QueueProcessor>();
+
+builder.Services.AddScoped<IFormProcessorService, FormProcessorService>();
+
+builder.Services.AddSingleton<IQueueProcessorMonitor, QueueProcessorMonitor>();
+
+builder.Services.AddHealthChecks()
+    .AddCheck<QueueProcessorHealthCheck>("queue_processor_health_check");
 
 var app = builder.Build();
 
@@ -62,6 +80,9 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHealthChecks("/health");
+
 app.MapRazorPages();
 
 app.Run();

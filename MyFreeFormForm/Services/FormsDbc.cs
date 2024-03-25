@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MyFreeFormForm.Data;
 using MyFreeFormForm.Models;
+using Newtonsoft.Json;
 
 namespace MyFreeFormForm.Services
 {
@@ -263,6 +265,18 @@ namespace MyFreeFormForm.Services
             }
         }
 
+        public async Task EnqueueFormSubmissionAsync(DynamicFormModel model)
+        {
+            var serializedModel = JsonConvert.SerializeObject(model);
 
+            _context.FormSubmissionQueue.Add(new Models.FormSubmissionQueue
+            {
+                FormModelData = serializedModel,
+                IsProcessed = false,
+                CreatedAt = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+
+        }
     }
 }

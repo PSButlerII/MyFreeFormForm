@@ -35,8 +35,9 @@
                     Upload Excel/CSV File
                 </button>
                 <button type="button" id="addFieldBtn" class="btn btn-primary">Add Field</button>
-                <button asp-action="SubmitDynamicForm" asp-route-action="dynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
+                <button asp-action="SubmitMultipleDynamicForms" asp-route-action="multipleDynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
                 <button type="button" id="createTemplate" disabled="true" class="btn btn-primary">Create template</button>
+                @* <button id="addNoteBtn" type="button" class="btn btn-primary">Add Note</button> *@
                 @* //TODO:  Need to implement the function that will enable the create template feature *@
                 @* <button type="button" id="hideSpinnerBtn" class="btn-secondary">hide spinner</button>*@
             </div>
@@ -47,7 +48,6 @@
                 <input type="number" id="formNumberInput" class="form-control short-input" min="1" placeholder="Form number" />
                 <button id="goToFormBtn" class="btn btn-secondary mt-2">Go to Form</button>
             </div>
-
 
             <!-- Dynamic Form -->
             <div id="dynamicForm">
@@ -109,16 +109,19 @@
                         @for (int i = 0; i < Model.Fields.Count; i++)
                         {
                             <div class="carousel-item @if(i == 0) {
-                        <text>active</text>
+                        <text>active</text>                                      
 }">
-                                <form asp-action="SubmitDynamicForm" method="post">
+                                <form asp-action="SubmitDynamicForm" asp-route-action="dynamic"  method="post">
                                     <div class="form-group dynamic-field" id="field-group-@i">
+                                        
                                         <label>@Model.Fields[i].FieldName</label>
                                         <input id="Field-Value" type="@Model.Fields[i].FieldType.ToString().ToLower()" name="Fields[@i].FieldName" class="form-control" />
                                         <!-- Include a button to remove the field -->
+                                        @* <div class="notes-section"  id="notesSection-@i"></div>*@
                                         <button type="button" class="remove-field-btn">Remove</button>
                                     </div>
                                 </form>
+
                             </div>
                         }
                     </div>
@@ -129,20 +132,9 @@
                     </div>
                 </>
             </div>
-
             <!-- Optional: Other Elements -->
-            <!-- Loading Spinner -->
-            
-                    @Html.Partial("_loadingSpinner")
-               
-            
-
-
+            <!-- Loading Spinner -->            
+                    @Html.Partial("_loadingSpinner")  
         </div>
     </div>
 </div>
-
-
-
-
-
