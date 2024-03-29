@@ -22,6 +22,12 @@ namespace MyFreeFormForm.Services
             _monitor = monitor;
         }
         // If you don't want the application to stop, the token you should use 
+        /// <summary>
+        /// This method is called when the <see cref="QueueProcessor"/> starts.
+        /// This type of method is called when the application starts, `ExecuteAsync` is called when the service starts.
+        /// </summary>
+        /// <param name="stoppingToken"></param>
+        /// <returns></returns>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
