@@ -17,8 +17,9 @@ namespace MyFreeFormForm.Models
        public string Description { get; set; }
        public List<DynamicField> Fields { get; set; } = new List<DynamicField>();
         //Maybe I need to add the FormNotes property here.  This way I can pass the notes to the FormNotes model
-       //public List<FormNotes> FormNotes { get; set; } = new List<FormNotes>();
-
+        public List<FormNotes> FormNotes { get; set; } = new List<FormNotes>();
+        //TODO: Need to be able to attach files to the form
+        //public List<IFormFile> Files { get; set; } = new List<IFormFile>();
        //public Form FormInstance { get; set; }
     }
 

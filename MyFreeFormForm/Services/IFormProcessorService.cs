@@ -62,19 +62,20 @@ namespace MyFreeFormForm.Services
                     _context.FormFields.Add(formField);
 
                 }
-
-                var formNotes = new FormNotes
+                foreach (var note in model.FormNotes)
                 {
-                    Notes = new List<string>{ "Form submitted" },
-                    CreatedDate = DateTime.Now,
-                    Form = myForm // This sets the relationship
-                };
-                myForm.FormNotes.Add(formNotes);
-                _context.FormNotes.Add(formNotes);
+                    var formNotes = new FormNotes
+                    {
+                        Notes = note.Notes,
+                        CreatedDate = DateTime.Now,
+                        Form = myForm // This sets the relationship
+                    };
+                    myForm.FormNotes.Add(formNotes);
+                    _context.FormNotes.Add(formNotes);
+                }
                 // Now add the form (with fields and notes) to the context and save it once
                 _context.Forms.Add(myForm);
                 await _context.SaveChangesAsync();
-
                 return true;
             }
             // catch if the form
@@ -98,6 +99,7 @@ namespace MyFreeFormForm.Services
             return ProcessesFormAsync(model);
 
         }
+     
     }
 
 }

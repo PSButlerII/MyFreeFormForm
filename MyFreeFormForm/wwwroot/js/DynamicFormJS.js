@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentIndex = 0; // Track the current index of the carousel
     let totalItems = 0;
     let noteIndex = 1; // Start with 1 because 0 is already in the HTML
+    let formIdList = [];
 
     function showSpinnerModal() {
         var spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'), {
@@ -27,28 +28,43 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(spinnerModal.hide(), 3, console.log('Hiding Spinner'));
 
         }
-    }      
+    }  
 
-   /* document.getElementById('addNoteBtn').addEventListener('click', function () {
-        let noteSection = document.getElementById('notesSection');
+    // Add Notes Section
+    function addNoteToActivelItem(context = 'staticForm') {
+        // Find the currently active carousel item
+        const activeCarouselItem = document.querySelector('.carousel-item.active');
+        const targetForm = context === 'carouselForm'
+            ? document.querySelector('.carousel-item.active form') || document.querySelector('.carousel-item.active')
+            : document.querySelector('#staticForm') || document.querySelector('form');
 
-        // Check if noteSection exists, create it if not
-        if (!noteSection) {
-            noteSection = document.createElement('div');
-            noteSection.id = 'notesSection';
-            // Append the newly created section where it needs to go in your form
-            const dynamicForm = document.getElementById('dynamicForm'); // Assuming this is your form's ID
-            dynamicForm.appendChild(noteSection);
+        // If there's no active item, don't proceed
+        if (!targetForm) return;
+
+        // Assuming each carousel item has a unique notes container ID
+        // We're going to append the note directly within this active item
+        let noteContainer = targetForm.querySelector('.notes-container');
+
+        // If the notes container does not exist within the active item, create it
+        if (!noteContainer) {
+            noteContainer = document.createElement('div');
+            noteContainer.className = 'notes-container';
+            targetForm.appendChild(noteContainer);
         }
 
+        // Now, we add the new note input to the notes container
+        const noteIndex = document.querySelectorAll('.input-group').length; // Unique index for each note
         const newNoteInput = `<div class="input-group mb-3" id="noteInput${noteIndex}">
-        <input type="text" class="form-control" name="FormNotes[${noteIndex}]" placeholder="Add a note" aria-label="Add a note">
+        <label for="FormNotes"> NOTES:</label>
+        <textarea class="form-control" name="FormNotes[${noteIndex}]" placeholder="Add a note" aria-label="Add a note"></textarea>
         <button class="btn btn-outline-secondary removeNoteBtn" type="button">Remove</button>
-        </div>`;
-        noteSection.insertAdjacentHTML('beforeend', newNoteInput);
-        noteIndex++;
-    });
+        <button id="addNewNoteBtn" class="btn btn-outline-secondary addNoteBtn" type="button">Save Note</button>
+    </div>`;
 
+        noteContainer.insertAdjacentHTML('beforeend', newNoteInput);
+    }
+
+    document.getElementById('addNoteBtn').addEventListener('click', addNotesBasedOnVisibility);
 
     document.addEventListener('click', function (e) {
         if (e.target && e.target.classList.contains('removeNoteBtn')) {
@@ -57,8 +73,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 noteGroup.remove(); // Remove this note field
             }
         }
-    });*/
+    });
+    //document.addEventListener('click', AddFormNotes(form.FormId,form.Formnote));
+    function addNotesBasedOnVisibility() {
+        // Check if the carousel is currently visible
+        const carousel = document.getElementById('dataCarousel');
+        const isCarouselVisible = carousel.style.display !== 'none';
 
+        if (isCarouselVisible) {
+            // If the carousel is visible, assume context is 'carouselForm'
+            addNoteToActivelItem('carouselForm');
+        } else {
+            // If the carousel is not visible, assume context is 'staticForm'
+            addNoteToActivelItem('staticForm');
+        }
+    }
+    // End of Notes Section
 
     $('#dataCarousel').carousel('pause');
 
@@ -96,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
             addField('staticForm');
         }
     }
+
 
     document.querySelector('#customNextBtn').addEventListener('click', handleCarouselControlClick);
 
@@ -349,15 +380,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     method: 'POST',
                     body: formData // No need to set Content-Type; it will be set automatically with boundary
                 });
-                //const data = await response.json();
-                /*if (!data.success) {
-                    console.error('Submission failed:', data.message);
-                    data.errors.forEach((error, index) => {
-                        console.error(`Error ${index + 1}:`, error);
-                    });
-                } else {
-                    console.log('Submission success:', data.message);
-                }*/
                 if (!response.ok) throw new Error('Network response was not ok.');
                 console.log('Submission success:', await response.json());
             } catch (error) {
@@ -485,12 +507,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }   
 
     function addFormSection(form, rowIndex, container) {     
-        
+    // Add a form section to the carousel. If you add a field to the model you will need to add it here also.
+
         //showSpinnerModal();
-        const fields = form.Fields || [];
+        //const fields = form.Fields || [];
+        const formId = form.formId;
         const fieldsArray = form.Fields ? JSON.parse(form.Fields) : [];
-        const totalFields = fieldsArray.length;
-        
+        const notesArray = form.FormNotes ? JSON.parse(form.FormNotes) : [];
+        //const totalFields = fieldsArray.length;
+
+
         if (fieldsArray.length>0) {
             // Now `fieldsArray` is an array, you can iterate over it
             //const fieldsArray = JSON.parse(form.Fields);
@@ -509,18 +535,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 const fieldValueInput = createInputField(`Fields[${rowIndex}].FieldValue`, FieldValue, FieldType);
                 fieldValueInput.value = FieldValue; // Assign the field value
 
+                // Add the FormNotes                
+
                 // Append the field name and type as hidden inputs, and field value as its appropriate type
                 container.appendChild(fieldNameInput);
                 container.appendChild(fieldTypeInput);
                 container.appendChild(createFieldGroup(FieldName, fieldValueInput)); // Only display the value input
             });
+            if (notesArray.length > 0) {
+                const notesContainer = document.createElement('div');
+                notesContainer.className = 'form-group notes-container';
+                notesContainer.id = `notes-container-${rowIndex}`;
 
+                // Filter notes based on formId and add them to the form
+                notesArray.filter(note => note.formId === formId).forEach((note, noteIndex) => {
+                    const noteLabel = document.createElement('label');
+                    noteLabel.textContent = `Note ${noteIndex + 1}`; // Customizable label text
+                    noteLabel.htmlFor = `FormNotes[${rowIndex}][${noteIndex}]`;
+
+                    const noteField = document.createElement('textarea');
+                    noteField.className = 'form-control note-field';
+                    noteField.name = `FormNotes[${rowIndex}][${noteIndex}]`;
+                    noteField.id = `FormNotes[${rowIndex}][${noteIndex}]`;
+                    noteField.value = note; // Assuming each note object has 'noteText'
+
+                    notesContainer.appendChild(noteLabel);
+                    notesContainer.appendChild(noteField);
+                });
+
+                container.appendChild(notesContainer);
+                //refreshFormNotes(formIdList);
+            }
         }
-        else {            
-            // get a count of the number of forms in the object
-            // console.log('Field Count from Object:', fieldCount);
-            // showSpinnerModal();
-           // const totalFields = Object.keys(form).length;
+        else {
             Object.entries(form).forEach(([fieldName, fieldValue],index) => {
                 // Assuming all fields are to be treated as DynamicFields
 
@@ -543,12 +590,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 fieldValueInput.className = "form-control dynamic-field";
                 fieldValueInput.value = fieldValue;
 
+
                 // Append these inputs to the container
+
                 container.appendChild(createFieldGroup(fieldName, fieldValueInput)); // Only display the value input
                 container.appendChild(fieldNameInput); // Add to the form, but it's hidden
                 container.appendChild(fieldTypeInput); // Add to the form, but it's hidden
                 
             });            
+                // Add notes
+                if (notesArray.length > 0) {
+                    const notesContainer = document.createElement('div');
+                    notesContainer.className = 'form-group notes-container';
+                    notesContainer.id = `notes-container-${rowIndex}`;
+
+                    // Filter notes based on formId and add them to the form
+                    notesArray.filter(note => note.formId === formId).forEach((note, noteIndex) => {
+                        const noteLabel = document.createElement('label');
+                        noteLabel.textContent = `Note ${noteIndex + 1}`; // Customizable label text
+                        noteLabel.htmlFor = `FormNotes[${rowIndex}][${noteIndex}]`;
+
+                        const noteField = document.createElement('textarea');
+                        noteField.className = 'form-control note-field';
+                        noteField.name = `FormNotes[${rowIndex}][${noteIndex}]`;
+                        noteField.id = `FormNotes[${rowIndex}][${noteIndex}]`;
+                        noteField.value = note.noteText; // Assuming each note object has 'noteText'
+
+                        notesContainer.appendChild(noteLabel);
+                        notesContainer.appendChild(noteField);
+                    });
+
+                    container.appendChild(notesContainer);
+                }
         }
     }
     
@@ -583,85 +656,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    //hideSpinner();
-    async function formLoader(formIds) {
-        // Construct the URL for the LoadForms action
-        // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
-        console.time('loadForm')
-        const url = `/Forms/LoadForms?ids=${formIds}`;
-        console.log(url);
-        // Fetch the forms from the server
+    function refreshFormNotes(formId) {
+        formId.forEach(id => {
+            fetch(`/Forms/UpdateFormNotes?formId=${id}`, {method:'Get'})
+                .then(response => response.text())
+                .then(html => {
+                    // Assuming you have a container for the notes partial view
+                    console.log('Form Notes:', html);
+                    document.getElementById('formNotesPanel').innerHTML = html;
+                })
+                .catch(error => console.error('Error loading form notes:', error));
+        });
+    }
 
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                //headers: { 'Accept': 'application/json', }
-            });
-            if (!response.ok) throw new Error('Network response was not ok.');
-            const data = await response.json();
-            console.timeEnd('loadForm')
-
-            console.time('loadResponse')
-            console.log('Forms loaded:', data);
-            // Process the loaded forms
-            if (data.success && data.forms.length) {
-                const clearFields = confirm('Do you want to clear existing fields before adding new ones?');
-                if (clearFields) {
-                    resetCarousel();
-                    resetForm();
-                }
-                const firstForm = data.forms[0];
-
-                // Update Form Name and Description fields
-                document.getElementById('FormName').value = firstForm.FormName || '';
-                document.getElementById('Description').value = firstForm.Description || '';
-
-                // because the data is coming back as response.json, the data is already an object. No need to parse it, just use it to add the forms
-                dataCarousel.style.display = '';
-                //submitData.style.display = '';
-                //$('#uploadModal').modal('hide');
-                const carouselInner = document.getElementById('carouselInner');
-                data.forms.forEach((row, rowIndex) => {
-                    console.log(`My Form ${rowIndex}:`, row);
-
-                    const form = document.createElement('form');
-                    form.action = 'dynamic'; // Adjust if your application's route is different
-                    form.method = "POST";
-                    form.className = "form-group";
-                    form.id = `form-${rowIndex}`;
-
-                    const carouselItem = document.createElement('div');
-                    carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
-                    carouselItem.classList.add('carousel-item');
-                    if (rowIndex === 0) carouselItem.classList.add('active');
-
-                    addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
-
-                    const submitBtn = document.createElement('button');
-                    submitBtn.type = "submit";
-                    submitBtn.className = "btn btn-primary";
-                    submitBtn.textContent = "Submit Form";
-
-                    // Append button to form, then form to carouselItem
-                    form.appendChild(submitBtn);
-                    //form.appendChild(removeBtn);
-                    carouselItem.appendChild(form);
-                    carouselInner.appendChild(carouselItem);
-
-                    // Count the number of forms
-                    const formCount = document.querySelectorAll('.carousel-item').length;
-                    totalItems = formCount;
-                    updateIndexDisplay();
-                    // Setup form submission
-                    setupFormSubmission(form, rowIndex);
-                });
-
-            }
-            console.timeEnd('loadResponse')
-
-        } catch (error) {
-            console.error('Error:', error);
-        }
+    function refreshUploadedDocuments() {
+        fetch(`/Forms/UpdateUploadedDocuments`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('uploadedDocumentsPanel').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading uploaded documents:', error));
     }
 
     window.loadForms = async function(formIds) {
@@ -669,6 +683,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
         console.time('loadForm')
         const url = `/Forms/LoadForms?ids=${formIds}`;
+        // formIds is a string of comma-separated form IDs, e.g., "1,2,3" and need to be seperated out into individual form IDs
+      //const formIds = formIds.split(',').map(id => parseInt(id, 10));
+        formIdList = formIds.split(',').map(id => parseInt(id, 10));
         console.log(url);
         // Fetch the forms from the server
 
@@ -736,6 +753,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     updateIndexDisplay();
                     // Setup form submission
                     setupFormSubmission(form, rowIndex);
+
+                    
                 });
                 $('#staticSubmitBtn').hide();
             }
@@ -744,7 +763,30 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error:', error);
         }
+    }  
+
+    async function AddFormNotes(formId, note) {
+        //TODO: This function should only add notes to the form that is currently being displayed
+        const url = `/Forms/UpdateFormNotes?formId=${formId}&note=${note}`;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', }
+            });
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const data = await response.json();
+            console.log('Form Notes added:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
+/*        // Example: Refresh every 30 seconds
+        setInterval(() => {
+            //refreshUploadedDocuments();
+            // You would need a way to determine the relevant formId for updating notes
+            refreshFormNotes(formId);
+            console.log('Refreshing form notes and uploaded documents')
+        }, 3000);*/
 
     console.timeEnd('DynamicFormJS');
 });

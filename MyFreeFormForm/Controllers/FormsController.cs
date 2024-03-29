@@ -69,22 +69,7 @@ namespace MyFreeFormForm.Controllers
         public IActionResult CreateDynamicForm()
         {
             var model = new DynamicFormModel();
-            // Pre-populate model.Fields with some example fields
-          /*  model.Fields.Add(new DynamicField { FieldName = "First Name", FieldType = FieldType.Text });
-            model.Fields.Add(new DynamicField { FieldName = "Last Name", FieldType = FieldType.Text });
-            model.Fields.Add(new DynamicField { FieldName = "Email", FieldType = FieldType.Email });
-            model.Fields.Add(new DynamicField { FieldName = "Date of Birth", FieldType = FieldType.Date });*/
-            //TODO: add the submit button
-
-
-            // Get the form instance from the database using the FormsDbc service getAllForms method
-            //var formInstance =  _formsDbc.GetForms();
-
-         /*  TODO:Need to find a way to keep this updated with the latest form instances, so when I add a new form, it will be added to the list of forms.
-             One way to do this is to use SignalR to update the formInstance list when a new form is added.
-             Another way is to use a service to get the formInstance list from the database and update the list when a new form is added.
-             A third way is to use a service to get the formInstance list from the database and update the list when a new form is added, then use SignalR to update the list on the client side.*/
-
+            //TODO: Instead of using ViewBag, consider using a ViewModel.  This will make it easier to test and maintain the code.
             var formInstance = _context.Forms
                 .AsEnumerable() // AsEnumerable or ToList, depending on your context's capabilities
                 .GroupBy(f => f.FormName)
@@ -108,7 +93,7 @@ namespace MyFreeFormForm.Controllers
                 //var form = await Request.ReadFormAsync();
                 var formName = form["FormName"];
                 var description = form["Description"];
-                //var formNotes = form["FormNotes"];
+                var formNotes = form["FormNotes"];
                 var indices = new HashSet<int>();
 
                 // Regular expression to match field indices
@@ -129,7 +114,7 @@ namespace MyFreeFormForm.Controllers
                     FormName = formName,
                     Description = description,
                     Fields = new List<DynamicField>(),
-                    //FormNotes = new List<FormNotes>()
+                    FormNotes = new List<FormNotes>()
                 };             
                 foreach (var index in indices)
                 {
@@ -177,7 +162,23 @@ namespace MyFreeFormForm.Controllers
 
                         dynamicFormModel.Fields.Add(dynamicField);
                     }
-
+                    // Add the notes to the formNotes list
+                    // Note sure if "Note" is the correct key to use here.  Need to check the key in the form data
+                    foreach (var key in form.Keys.Where(k => k.StartsWith("FormNote")))
+                    {
+                        Console.BackgroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"Note: {form[key]}, and The key from the loop: {key}");
+                        var noteValue = form[key];
+                        if (!string.IsNullOrEmpty(noteValue))
+                        {
+                            dynamicFormModel.FormNotes.Add(new FormNotes
+                            {
+                                Notes = new List<string> { noteValue }, // Assuming each FormNotes object contains a list of notes
+                                CreatedDate = DateTime.Now,
+                                UpdatedDate = DateTime.Now
+                            });
+                        }
+                    }
                     await _formsDbc.EnqueueFormSubmissionAsync(dynamicFormModel);
                     return Json(new { success = true, message = "Form submission queued" });
                 }
@@ -260,7 +261,7 @@ namespace MyFreeFormForm.Controllers
             }
         }
 
-        /// <summary>
+   /*     /// <summary>
         /// 
         /// </summary>
         /// <param name="formId"></param>
@@ -279,86 +280,7 @@ namespace MyFreeFormForm.Controllers
             }
 
             return View(form);
-        }
-
-        // Add a method to update the form
-        /// <summary>
-        ///  
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("UpdateForm")]
-        public async Task<IActionResult> UpdateForm([FromForm] DynamicFormModel model)
-        {
-            Console.BackgroundColor = ConsoleColor.Green;
-            Console.WriteLine("SubmitDynamicForm: " + JsonConvert.SerializeObject(model));
-
-            if (ModelState.IsValid)
-            {
-                var form = await Request.ReadFormAsync();
-                var formName = form["FormName"];
-                var description = form["Description"];
-                var indices = new HashSet<int>();
-
-                // Regular expression to match field indices
-                var regex = new Regex(@"Fields\[(\d+)\]");
-
-                foreach (var key in form.Keys)
-                {
-                    var match = regex.Match(key);
-                    if (match.Success)
-                    {
-                        // If the key matches the pattern, add the index to the set
-                        indices.Add(int.Parse(match.Groups[1].Value));
-                    }
-                }
-                foreach (var index in indices)
-                {
-                    var fieldNameKey = $"Fields[{index}].FieldName";
-                    var fieldValueKey = $"Fields[{index}].FieldValue";
-                    var fieldTypeKey = $"Fields[{index}].FieldType";
-
-                    var fieldName = form[fieldNameKey];
-                    var fieldValue = form[fieldValueKey];
-                    var fieldType = form[fieldTypeKey];
-
-                    // Process each field here
-                    // For example, you might log them or add them to a list
-                    var myForm = new Form { FormName = formName, Description = description, CreatedDate = DateTime.Now };
-                    myForm.FormFields = new List<FormField>();
-
-                    for (int i = 0; i < fieldName.Count; i++)
-                    {
-                        var formField = new FormField
-                        {
-                            // if the FieldId is not set, it will be set to 0. check if the FieldId is 0, if it is, then set the FormId to the FormId of the form being created
-                            FormId = myForm.FormId,
-                            FieldName = fieldName[i],
-                            FieldType = fieldType[i],
-                            FieldValue = fieldValue[i],
-                            Required = true,
-                            FieldOptions = fieldOptions,
-                            Form = myForm
-                        };
-                        myForm.FormFields.Add(formField);
-                        _context.FormFields.Add(formField);
-
-                    }
-
-                    var formNotes = new FormNotes { FormId = myForm.FormId, Notes = new List<string> { "Form submitted" }, CreatedDate = DateTime.Now };
-                    _context.FormNotes.Add(formNotes);
-
-                    myForm.FormNotes = new List<FormNotes> { formNotes };
-                    //await _context.SaveChangesAsync();
-
-                    _context.Forms.Add(myForm);
-                    await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = "Form submitted successfully" });
-                }
-            }
-            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-            return Json(new { success = false, message = "Validation failed", errors = errors });
-        }
+        }*/
 
         /// <summary>
         ///  
@@ -372,16 +294,26 @@ namespace MyFreeFormForm.Controllers
             try
             {
                 var idList = ids.Split(',').Select(int.Parse).ToList();
+
                 var forms = await _context.Forms
                                           .Where(f => idList.Contains(f.FormId))
                                           .ToListAsync();
+                var notes = await _context.FormNotes
+                                  .Where(fn => idList.Contains(fn.FormId))
+                                  .ToListAsync();
+
+                Console.BackgroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine($"{notes}");
+
                 // Now get the fields for each form and add them to an object
                 foreach (var form in forms)
                 {
                     var fields = await _context.FormFields
                                               .Where(ff => ff.FormId == form.FormId)
                                               .ToListAsync();
+
                     var formFields = new List<Dictionary<string, string>>();
+
                     foreach (var field in fields)
                     {
                         var fieldData = new Dictionary<string, string>
@@ -392,13 +324,18 @@ namespace MyFreeFormForm.Controllers
                         };
                         formFields.Add(fieldData);
                     }
+                    var formNotes = notes.Where(n => n.FormId == form.FormId)
+                                 .Select(n => n.Notes) // Assuming NoteText is the note content
+                                 .ToList();
+                    // Will need to eventual add an entry for files
                     selectedData.Add(new Dictionary<string, string>
                     {
                         { "FormName", form.FormName },
                         { "Description", form.Description },
-                        { "Fields", JsonConvert.SerializeObject(formFields) }
-                    });
+                        { "Fields", JsonConvert.SerializeObject(formFields) },
+                        { "FormNotes", JsonConvert.SerializeObject(formNotes) }
 
+                    });
                 }
                 return Json(new { success = true, message = "Forms loaded successfully", forms = selectedData });
             }
@@ -430,7 +367,69 @@ namespace MyFreeFormForm.Controllers
             ViewBag.FormInstance = formInstance;
         }
 
+        [HttpGet("UpdateFormNotes")]
+        public async Task<IActionResult> UpdateFormNotes(int formId)
+        {
+            _logger.LogInformation("Fetching notes for form ID: {FormId}", formId);
+            try
+            {
+                var formNotes = await _context.FormNotes
+                                               .Where(fn => fn.FormId == formId)
+                                               .ToListAsync();
+                var formNotesList = new List<string>();
+                //Notes is a string list.  Check is the formNotes.Notes is empty
+                if (formNotes != null)
+                {
+                    foreach (var note in formNotes)
+                    {
+                        formNotesList.Add(note.Notes.ToString());
+                    }
+                }
+                return PartialView("_formNotes", formNotes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching form notes for form ID: {FormId}", formId);
+                throw;
+            }
+        }
+
+        [HttpPost("UpdateFormNotes")]
+        public async Task<IActionResult> AddFormNotes(int formId, string note)
+        {// TODO: Implement logic that will allow you to add notes to a form without submitting the form
+            try
+            {
+                var form = await _context.Forms
+                    .Include(f => f.FormNotes)
+                    .FirstOrDefaultAsync(f => f.FormId == formId);
+
+                if (form == null)
+                {
+                    return NotFound();
+                }
+
+                if (form.FormNotes == null)
+                {
+                    form.FormNotes = new List<FormNotes>();
+                }
+
+                form.FormNotes.Add(new FormNotes
+                {
+                    Notes = new List<string> { note },
+                    CreatedDate = DateTime.Now,
+                    UpdatedDate = DateTime.Now
+                });
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Note added successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding note to form ID: {FormId}", formId);
+                return Json(new { success = false, message = "An error occurred while adding the note" });
+            }
+        }
+
     }
 }
-
-
