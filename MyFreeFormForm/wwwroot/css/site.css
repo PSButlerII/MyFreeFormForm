@@ -44,3 +44,44 @@ body {
     .clickable-text:hover {
         color: darkblue;
     }
+
+    /* for printing forms*/
+@media print {
+    body, html {
+        background: #FFF;
+        color: #000;
+    }
+
+    nav, footer, .no-print {
+        display: none;
+    }
+
+    .print-friendly {
+        width: 100%;
+        display: block;
+    }
+    /* Adjustments to make inputs look like regular text */
+    input, textarea {
+        border: none;
+        font-family: Times, "Times New Roman", serif;
+        font-size: 12pt;
+    }
+
+    .remove-thead {
+        display: none;
+        }
+
+        input[type="checkbox"]:before {
+            content: "";
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        input[type="checkbox"]:checked:before {
+            content: "?"; /* Unicode character for a checked box */
+        }
+
+        input[type="checkbox"]:not(:checked):before {
+            content: "?"; /* Unicode character for an unchecked box */
+        }
+}

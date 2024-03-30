@@ -7,10 +7,12 @@ document.addEventListener('DOMContentLoaded', function () {
     carouselInstance.cycle();
     const uploadForm = document.getElementById('uploadForm');
     const carouselInner = document.getElementById('carouselInner');
+    const loggedInUser = document.getElementById('loggedInUser')?.value;
     let currentIndex = 0; // Track the current index of the carousel
     let totalItems = 0;
     let noteIndex = 1; // Start with 1 because 0 is already in the HTML
     let formIdList = [];
+    let firstForm = [];
 
     function showSpinnerModal() {
         var spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'), {
@@ -179,6 +181,18 @@ document.addEventListener('DOMContentLoaded', function () {
         goToSlide(newIndex);
         updateFieldNames();
     }
+
+    // Check if the user is logger in
+    // If the user is not logged in, the upload button will not be visible
+    // If the user is logged in, the upload button will be visible
+
+    // get the logged in user
+    console.log('Logged in User:', loggedInUser);
+    if (loggedInUser) {
+        document.getElementById('submitAllData').disabled = false;
+        document.getElementById('createTemplate').disabled = false;        
+    }
+
 
     function addField(context = 'staticForm') {
         // Determine the target form based on the context
@@ -489,6 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetCarousel() {
         carouselInner.innerHTML = '';
         currentIndex = 0; // Reset index
+        updateIndexDisplay();
     }
 
     function getInputType(fieldName, fieldValue) {
@@ -564,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 container.appendChild(notesContainer);
-                //refreshFormNotes(formIdList);
+                refreshFormNotes(formIdList);
             }
         }
         else {
@@ -678,14 +693,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => console.error('Error loading uploaded documents:', error));
     }
 
-    window.loadForms = async function(formIds) {
+    window.loadForms = async function (formIds) {
         // Construct the URL for the LoadForms action
         // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
         console.time('loadForm')
         const url = `/Forms/LoadForms?ids=${formIds}`;
-        // formIds is a string of comma-separated form IDs, e.g., "1,2,3" and need to be seperated out into individual form IDs
-      //const formIds = formIds.split(',').map(id => parseInt(id, 10));
+        // formIds is an array of form ids
+        //const formIdList2 = formIds2.join(',');
+        // string of comma - separated form IDs, e.g., "1,2,3" and need to be seperated out into individual form IDs
+        // const formIds = formIds.split(',').map(id => parseInt(id, 10));
         formIdList = formIds.split(',').map(id => parseInt(id, 10));
+        //console.log('Form Ids:', formIdList2);
+        console.log('Form Ids:', formIdList);
         console.log(url);
         // Fetch the forms from the server
 
@@ -707,7 +726,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     resetCarousel();
                     resetForm();
                 }
-                const firstForm = data.forms[0];
+                firstForm = data.forms[0];
 
                 // Update Form Name and Description fields
                 document.getElementById('FormName').value = firstForm.FormName || '';
@@ -756,6 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     
                 });
+
                 $('#staticSubmitBtn').hide();
             }
             console.timeEnd('loadResponse')
@@ -787,6 +807,114 @@ document.addEventListener('DOMContentLoaded', function () {
             refreshFormNotes(formId);
             console.log('Refreshing form notes and uploaded documents')
         }, 3000);*/
+
+    // Add event listener to the createTemplate button
+    document.getElementById('createTemplate').addEventListener('click', createTemplate);
+
+    function createTemplate() {
+        console.log('Creating Template');
+        // Get the current form
+        const currentForm = document.querySelector('.carousel-item.active form');
+        if (!currentForm) {
+            console.error('No form found.');
+            return;
+        }
+
+        // Get the form data
+        const formData = firstForm;
+        console.log('Form data:', formData);
+
+        // Convert the form data to an object
+        const fields = JSON.parse(formData.Fields);
+        console.log('Fields:', fields);
+
+
+
+        // Prompt the user to add the template to the current form or create a new form
+        const addTemplate = confirm('Do you want to add the template to the current form?');
+        if (addTemplate) {
+            // Add the template to the current form
+            console.log('Adding template to current form');
+            // use the current form fields to create a new form
+            const carouselInner = document.getElementById('carouselInner');
+            const rowIndex = document.querySelectorAll('.carousel-item').length||0;
+                const form = document.createElement('form');
+                form.action = 'dynamic'; // Adjust if your application's route is different
+                form.method = "POST";
+                form.className = "form-group";
+                form.id = `form-${rowIndex}`;
+
+                const carouselItem = document.createElement('div');
+                carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
+                carouselItem.classList.add('carousel-item');
+                if (rowIndex === 0) carouselItem.classList.add('active');
+
+                //addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
+            addNewFormSection(fields, form, rowIndex);
+                const submitBtn = document.createElement('button');
+                submitBtn.type = "submit";
+                submitBtn.className = "btn btn-primary";
+                submitBtn.textContent = "Submit Form";
+
+                // Append button to form, then form to carouselItem
+                form.appendChild(submitBtn);
+                //form.appendChild(removeBtn);
+                carouselItem.appendChild(form);
+                carouselInner.appendChild(carouselItem);
+
+                // Count the number of forms
+                const formCount = document.querySelectorAll('.carousel-item').length;
+                totalItems = formCount;
+                updateIndexDisplay();
+                goToSlide(rowIndex);
+
+        } else {
+            // Create a new form with the template
+            console.log('Creating a new form with the template');
+            // cklear the form or carousel
+            resetCarousel();
+            resetForm();
+            // Add the template to the new form
+            addNewFormSection(fields, form);
+            //goToSlide(rowIndex);
+        }        
+    }
+
+    function addNewFormSection(fieldsArray, container, rowIndex) {
+        // Iterate over the fieldsArray, which should be an array of objects
+        // Each object in this array should have FieldName, FieldType, and optionally, FieldValue properties
+        fieldsArray.forEach((field, index) => {
+            const { FieldName, FieldType } = field;
+            
+            // Create an input or select based on FieldType
+            let input;
+            if (FieldType.toLowerCase() === 'select') {
+                // Assuming 'select' means a dropdown. Adjust as per your actual data
+                input = document.createElement('select');
+                // Populate your select with options. This part might require fetching options or having them predefined
+            } else {
+                // For simplicity, all other types are created as inputs. Adjust types as necessary.
+                input = document.createElement('input');
+                input.type = FieldType.toLowerCase();
+            }
+
+            input.name = `Fields[${index}].FieldValue`; // Naming convention assumes dynamic field naming. Adjust as necessary.
+            input.className = "form-control"; // Bootstrap class for styling
+            input.placeholder = FieldName; // Using FieldName as placeholder
+            input.className = "form-control dynamic-field";
+
+            // Optionally, create a label for the input
+            const label = document.createElement('label');
+            label.textContent = FieldName;
+
+            // Append elements to the container
+            container.appendChild(createFieldGroup(FieldName, input)); // Create a field group (label, input, remove button)
+/*            container.appendChild(fieldTypeInput); // Add to the form, but it's hidden
+            container.appendChild(fieldValueInput); // Add to the form, but it's hidden*/
+            // navigate to the new form
+            
+        });
+    }
 
     console.timeEnd('DynamicFormJS');
 });
