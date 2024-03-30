@@ -15,17 +15,16 @@
             </div>
         </div>
 
-        <!--Form Notes-->
-@*         <div class="col-md-3">
+         <!--Form Notes-->
+         <div class="col-md-3">
             <div class="p-3 border
                 bg-light">
                 <h5>Form Notes</h5>
                 <div id="formNotesPanel">
                     @Html.Partial("_formNotes", Model.FormNotes)
-
                 </div>
             </div>
-        </div> *@
+        </div>
 
         <!-- Main content area -->
         <div class="col-md-9">
@@ -36,10 +35,11 @@
                     Upload Excel/CSV File
                 </button>
                 <button type="button" id="addFieldBtn" class="btn btn-primary">Add Field</button>
-                <button asp-action="SubmitMultipleDynamicForms" asp-route-action="multipleDynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
+                <button asp-action="SubmitMultipleDynamicForms" disabled="true" asp-route-action="multipleDynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
                 @* //TODO: Implement the create template, which should either add or Create a new form from the currenly selected form *@
                 <button type="button" id="createTemplate" disabled="true" class="btn btn-primary">Create template</button>
                 <button id="addNoteBtn" type="button" class="btn btn-primary">Add Note</button>
+                <button onclick="window.print()" class="no-print">Print this form</button>
                 @* //TODO:  Need to implement the function that will enable the create template feature *@
                 @* <button type="button" id="hideSpinnerBtn" class="btn-secondary">hide spinner</button>*@
             </div>

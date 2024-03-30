@@ -2,7 +2,54 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-3">Welcome to My FreeForm Form</h1>
+        <p class="lead">The ultimate solution for dynamic form creation and management.</p>
+        <hr class="my-4">
+        <p>Start building and managing your forms with ease. Explore the documentation to learn more.</p>
+        <a class="btn btn-primary btn-lg" href="https://learn.microsoft.com/aspnet/core" role="button">Learn More</a>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Create Forms</h5>
+                    <p class="card-text">Easily design and create customizable forms to fit your needs.</p>
+                    <a href="/Forms/CreateDynamicForm" class="btn btn-secondary">Start Creating</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Forms</h5>
+                    <p class="card-text">View, edit, and manage all your forms in one place.</p>
+                    <a href="/Forms/Manage" class="btn btn-secondary">Manage Forms</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Upload Data</h5>
+                    <p class="card-text">Upload and integrate data into your forms with ease.</p>
+                    <a href="/Forms/UploadFile" class="btn btn-secondary">Upload Data</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-lg-12">
+            <div class="jumbotron">
+                <h2>About My FreeForm Form</h2>
+                <p class="lead">My Free Form Form is built with ASP.NET Core, leveraging the best practices for modern web development. It allows users to dynamically create, manage, and integrate forms with various data sources.</p>
+                <hr class="my-4">
+                <p>It's designed to be intuitive, flexible, and powerful, providing a seamless experience from form creation to data integration.</p>
+                <a class="btn btn-primary btn-lg" href="/About" role="button">Learn more about us</a>
+            </div>
+        </div>
+    </div>
 </div>
