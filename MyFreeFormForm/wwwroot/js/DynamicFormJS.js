@@ -193,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('createTemplate').disabled = false;        
     }
 
-
     function addField(context = 'staticForm') {
         // Determine the target form based on the context
         const targetForm = context === 'carouselForm'
@@ -828,8 +827,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const fields = JSON.parse(formData.Fields);
         console.log('Fields:', fields);
 
-
-
         // Prompt the user to add the template to the current form or create a new form
         const addTemplate = confirm('Do you want to add the template to the current form?');
         if (addTemplate) {
@@ -838,35 +835,35 @@ document.addEventListener('DOMContentLoaded', function () {
             // use the current form fields to create a new form
             const carouselInner = document.getElementById('carouselInner');
             const rowIndex = document.querySelectorAll('.carousel-item').length||0;
-                const form = document.createElement('form');
-                form.action = 'dynamic'; // Adjust if your application's route is different
-                form.method = "POST";
-                form.className = "form-group";
-                form.id = `form-${rowIndex}`;
+            const form = document.createElement('form');
+            form.action = 'dynamic'; // Adjust if your application's route is different
+            form.method = "POST";
+            form.className = "form-group";
+            form.id = `form-${rowIndex}`;
 
-                const carouselItem = document.createElement('div');
-                carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
-                carouselItem.classList.add('carousel-item');
-                if (rowIndex === 0) carouselItem.classList.add('active');
+            const carouselItem = document.createElement('div');
+            carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
+            carouselItem.classList.add('carousel-item');
+            if (rowIndex === 0) carouselItem.classList.add('active');
 
-                //addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
+            //addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
             addNewFormSection(fields, form, rowIndex);
-                const submitBtn = document.createElement('button');
-                submitBtn.type = "submit";
-                submitBtn.className = "btn btn-primary";
-                submitBtn.textContent = "Submit Form";
+            const submitBtn = document.createElement('button');
+            submitBtn.type = "submit";
+            submitBtn.className = "btn btn-primary";
+            submitBtn.textContent = "Submit Form";
 
-                // Append button to form, then form to carouselItem
-                form.appendChild(submitBtn);
-                //form.appendChild(removeBtn);
-                carouselItem.appendChild(form);
-                carouselInner.appendChild(carouselItem);
+            // Append button to form, then form to carouselItem
+            form.appendChild(submitBtn);
+            //form.appendChild(removeBtn);
+            carouselItem.appendChild(form);
+            carouselInner.appendChild(carouselItem);
 
-                // Count the number of forms
-                const formCount = document.querySelectorAll('.carousel-item').length;
-                totalItems = formCount;
-                updateIndexDisplay();
-                goToSlide(rowIndex);
+            // Count the number of forms
+            const formCount = document.querySelectorAll('.carousel-item').length;
+            totalItems = formCount;
+            updateIndexDisplay();
+            goToSlide(rowIndex);
 
         } else {
             // Create a new form with the template
@@ -874,9 +871,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // cklear the form or carousel
             resetCarousel();
             resetForm();
-            // Add the template to the new form
             addNewFormSection(fields, form);
-            //goToSlide(rowIndex);
         }        
     }
 
@@ -908,13 +903,35 @@ document.addEventListener('DOMContentLoaded', function () {
             label.textContent = FieldName;
 
             // Append elements to the container
-            container.appendChild(createFieldGroup(FieldName, input)); // Create a field group (label, input, remove button)
-/*            container.appendChild(fieldTypeInput); // Add to the form, but it's hidden
-            container.appendChild(fieldValueInput); // Add to the form, but it's hidden*/
-            // navigate to the new form
+            container.appendChild(createFieldGroup(FieldName, input));
             
         });
     }
+
+    function logMessage(level, message) {
+        // Prepare the log entry
+        const logEntry = {
+            timestamp: new Date().toISOString(),
+            level: level,
+            message: message,
+        };
+
+        // Convert log entry to a string or format as needed
+        const logString = JSON.stringify(logEntry);
+
+        // Send the logString to a server
+        fetch('/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: logString,
+        })
+            .catch(error => console.error('Failed to log message to server:', error));
+    }
+
+    // Usage
+    logMessage('INFO', 'This is a test log message.');
 
     console.timeEnd('DynamicFormJS');
 });
