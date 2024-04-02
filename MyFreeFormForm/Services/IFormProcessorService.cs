@@ -37,13 +37,15 @@ namespace MyFreeFormForm.Services
             {
                 var formName = model.FormName;
                 var description = model.Description;
+                var userId = model.UserId;
                 var myForm = new Form
                 {
                     FormName = formName,
                     Description = description,
                     CreatedDate = DateTime.Now,
                     FormFields = new List<FormField>(), // Initialize the list here
-                    FormNotes = new List<FormNotes>() // Initialize the list here
+                    FormNotes = new List<FormNotes>(), // Initialize the list here
+                    UserId = userId
                 };
 
                 foreach (var field in model.Fields)

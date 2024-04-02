@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "FNpmNQKqIAUANwokiXm3UQc1xWewDYtZbXjg7/7COI3I46U5SNxq5TkPDgfYvEo5/bf7uZmCY3AwTnB95n5M2w==",
+  "dgSpecHash": "0usZ+5iIgDWVSw/yMJQU2EwSdpN+VjtVs2CXzRGyYTdwbAhkZFHYV/s+c/Yczu0/wbGZCxhfuJTyTFwTZeTtog==",
   "success": true,
   "projectFilePath": "C:\\Users\\prest\\source\\repos\\MyFreeFormForm\\MyFreeFormForm\\MyFreeFormForm.csproj",
   "expectedPackageFiles": [
@@ -59,6 +59,7 @@
     "C:\\Users\\prest\\.nuget\\packages\\humanizer.core.zh-cn\\2.14.1\\humanizer.core.zh-cn.2.14.1.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\humanizer.core.zh-hans\\2.14.1\\humanizer.core.zh-hans.2.14.1.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\humanizer.core.zh-hant\\2.14.1\\humanizer.core.zh-hant.2.14.1.nupkg.sha512",
+    "C:\\Users\\prest\\.nuget\\packages\\markdig\\0.36.2\\markdig.0.36.2.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.2\\microsoft.aspnetcore.cryptography.internal.8.0.2.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.2\\microsoft.aspnetcore.cryptography.keyderivation.8.0.2.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\microsoft.aspnetcore.diagnostics.entityframeworkcore\\8.0.2\\microsoft.aspnetcore.diagnostics.entityframeworkcore.8.0.2.nupkg.sha512",

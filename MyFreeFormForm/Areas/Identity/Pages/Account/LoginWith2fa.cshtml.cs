@@ -11,18 +11,19 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using MyFreeFormForm.Data;
 
 namespace MyFreeFormForm.Areas.Identity.Pages.Account
 {
     public class LoginWith2faModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<MyIdentityUsers> _signInManager;
+        private readonly UserManager<MyIdentityUsers> _userManager;
         private readonly ILogger<LoginWith2faModel> _logger;
 
         public LoginWith2faModel(
-            SignInManager<IdentityUser> signInManager,
-            UserManager<IdentityUser> userManager,
+            SignInManager<MyIdentityUsers> signInManager,
+            UserManager<MyIdentityUsers> userManager,
             ILogger<LoginWith2faModel> logger)
         {
             _signInManager = signInManager;

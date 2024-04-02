@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyFreeFormForm.Models; // Ensure you have the using directive for your models
 
 namespace MyFreeFormForm.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<MyIdentityUsers>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -32,6 +33,29 @@ namespace MyFreeFormForm.Data
                 .HasMany(f => f.FormNotes)
                 .WithOne(fn => fn.Form)
                 .HasForeignKey(fn => fn.FormId);
+            base.OnModelCreating(modelBuilder);
+
+            // Customize the ASP.NET Identity model and override the defaults if needed.
+            // For example, you can rename the ASP.NET Identity table names and more.
+            // Add your customizations after calling base.OnModelCreating(builder);
+            modelBuilder.ApplyConfiguration(new IdentityUserConfiguration());
+        }
+
+
+        public class IdentityUserConfiguration : IEntityTypeConfiguration<MyIdentityUsers>
+        {
+            public void Configure(EntityTypeBuilder<MyIdentityUsers> builder)
+            {
+                builder.ToTable("AspNetUsers");
+                builder.Property(p => p.FirstName).HasColumnName("FirstName");
+                builder.Property(p => p.LastName).HasColumnName("LastName");
+                builder.Property(p => p.City).HasColumnName("City");
+                builder.Property(p => p.State).HasColumnName("State");
+                builder.Property(p => p.Zip).HasColumnName("Zip");
+
+
+
+            }
         }
     }
 }

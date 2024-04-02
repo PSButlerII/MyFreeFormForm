@@ -14,16 +14,20 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using MyFreeFormForm.Data;
+using MyFreeFormForm.Models;
 
 namespace MyFreeFormForm.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<MyIdentityUsers> _userManager;
+        private readonly SignInManager<MyIdentityUsers> _signInManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(UserManager<MyIdentityUsers> userManager, SignInManager<MyIdentityUsers> signInManager, ILogger<LoginModel> logger)
         {
+            _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
         }
@@ -107,11 +111,34 @@ namespace MyFreeFormForm.Areas.Identity.Pages.Account
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
+            var user = await _userManager.FindByEmailAsync(Input.Email);
+            if (user == null)
+            {
+                _logger.LogWarning("Login attempt with non-existent email: {Email}", Input.Email);
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
+
+
+            var passwordCorrect = await _userManager.CheckPasswordAsync(user, Input.Password);
+            if (!passwordCorrect)
+            {
+                _logger.LogWarning("Password verification failed for user {Email}", Input.Email);
+            }
+
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                _logger.LogWarning("Unconfirmed email attempted to log in: {Email}", Input.Email);
+                ModelState.AddModelError(string.Empty, "You must have a confirmed email to log in.");
+                return Page();
+            }
+
+
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
@@ -129,6 +156,9 @@ namespace MyFreeFormForm.Areas.Identity.Pages.Account
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    // Log the login failure and the error message
+                    _logger.LogWarning("Login attempt failed for user {Email}. Reason: {LoginResult}", Input.Email, result.ToString());
+
                     return Page();
                 }
             }

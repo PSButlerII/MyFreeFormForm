@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MyFreeFormForm.Core;
+using MyFreeFormForm.Core.Repositories;
+using MyFreeFormForm.Repositories;
 using MyFreeFormForm.Data;
 using MyFreeFormForm.Helpers;
 using MyFreeFormForm.Services;
@@ -26,8 +29,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<MyIdentityUsers>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
 builder.Services.AddControllersWithViews().AddSessionStateTempDataProvider(); 
 builder.Services.AddRazorPages();
 builder.Services.AddTransient<FileParser>();
@@ -58,6 +64,20 @@ builder.Services.AddSingleton<IQueueProcessorMonitor, QueueProcessorMonitor>();
 builder.Services.AddHealthChecks()
     .AddCheck<QueueProcessorHealthCheck>("queue_processor_health_check");
 
+// In ConfigureServices
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+    builder => builder.WithOrigins("https://localhost:7222/") // Replace with your client's origin
+        .AllowAnyMethod()
+        .AllowAnyHeader());
+});
+
+// In Configure, before UseRouting or UseEndpoints
+
+
+AddAuthorizationPolicies(builder.Services);
+AddScoped(builder.Services);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -84,7 +104,28 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHealthChecks("/health");
+app.UseCors("AllowSpecificOrigin");
 
 app.MapRazorPages();
 
 app.Run();
+
+// Define the AddAuthorizationPolicies method
+void AddAuthorizationPolicies(IServiceCollection services)
+{
+    services.AddAuthorization(options =>
+    {
+        // Define your policies here
+        options.AddPolicy("EmployeeOnly", policy => policy.RequireClaim("EmployeeNumber"));
+
+        options.AddPolicy(Constants.Policies.RequireAdmin, policy => policy.RequireRole(Constants.Roles.Administrator));
+        options.AddPolicy(Constants.Policies.RequireManager, policy => policy.RequireRole(Constants.Roles.Manager));
+    });
+}
+
+void AddScoped(IServiceCollection services)
+{
+    services.AddScoped<IUserRepository, UserRepository>();
+    services.AddScoped<IRoleRepository, RoleRepository>();
+    services.AddScoped<IUnitOfWork, UnitOfWork>();
+}

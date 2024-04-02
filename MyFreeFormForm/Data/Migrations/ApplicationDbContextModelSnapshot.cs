@@ -74,7 +74,7 @@ namespace MyFreeFormForm.Data.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.MyIdentityUsers", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -85,6 +85,11 @@ namespace MyFreeFormForm.Data.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -137,6 +142,10 @@ namespace MyFreeFormForm.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("MyIdentityUsers");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -246,9 +255,15 @@ namespace MyFreeFormForm.Data.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("FormId");
 
-                    b.ToTable("Forms");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Forms", (string)null);
                 });
 
             modelBuilder.Entity("MyFreeFormForm.Models.FormField", b =>
@@ -284,7 +299,7 @@ namespace MyFreeFormForm.Data.Migrations
 
                     b.HasIndex("FormId");
 
-                    b.ToTable("FormFields");
+                    b.ToTable("FormFields", (string)null);
                 });
 
             modelBuilder.Entity("MyFreeFormForm.Models.FormNotes", b =>
@@ -312,7 +327,7 @@ namespace MyFreeFormForm.Data.Migrations
 
                     b.HasIndex("FormId");
 
-                    b.ToTable("FormNotes");
+                    b.ToTable("FormNotes", (string)null);
                 });
 
             modelBuilder.Entity("MyFreeFormForm.Models.FormSubmissionQueue", b =>
@@ -335,7 +350,34 @@ namespace MyFreeFormForm.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FormSubmissionQueue");
+                    b.ToTable("FormSubmissionQueue", (string)null);
+                });
+
+            modelBuilder.Entity("MyFreeFormForm.Data.MyIdentityUsers", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.MyIdentityUsers");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Zip")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasDiscriminator().HasValue("MyIdentityUsers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -349,7 +391,7 @@ namespace MyFreeFormForm.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.MyIdentityUsers", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -358,7 +400,7 @@ namespace MyFreeFormForm.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.MyIdentityUsers", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -373,7 +415,7 @@ namespace MyFreeFormForm.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.MyIdentityUsers", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -382,11 +424,22 @@ namespace MyFreeFormForm.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.MyIdentityUsers", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MyFreeFormForm.Models.Form", b =>
+                {
+                    b.HasOne("MyFreeFormForm.Data.MyIdentityUsers", "User")
+                        .WithMany("Forms")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MyFreeFormForm.Models.FormField", b =>
@@ -416,6 +469,11 @@ namespace MyFreeFormForm.Data.Migrations
                     b.Navigation("FormFields");
 
                     b.Navigation("FormNotes");
+                });
+
+            modelBuilder.Entity("MyFreeFormForm.Data.MyIdentityUsers", b =>
+                {
+                    b.Navigation("Forms");
                 });
 #pragma warning restore 612, 618
         }

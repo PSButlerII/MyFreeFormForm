@@ -18,22 +18,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using MyFreeFormForm.Data;
 
 namespace MyFreeFormForm.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly IUserStore<IdentityUser> _userStore;
-        private readonly IUserEmailStore<IdentityUser> _emailStore;
+        private readonly SignInManager<MyIdentityUsers> _signInManager;
+        private readonly UserManager<MyIdentityUsers> _userManager;
+        private readonly IUserStore<MyIdentityUsers> _userStore;
+        private readonly IUserEmailStore<MyIdentityUsers> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
-            IUserStore<IdentityUser> userStore,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<MyIdentityUsers> userManager,
+            IUserStore<MyIdentityUsers> userStore,
+            SignInManager<MyIdentityUsers> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
@@ -79,6 +80,26 @@ namespace MyFreeFormForm.Areas.Identity.Pages.Account
             [Display(Name = "Email")]
             public string Email { get; set; }
 
+            [Required]
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
+            [Required]
+            [Display(Name = "City")]
+            public string City { get; set; }
+
+            [Required]
+            [Display(Name = "State")]
+            public string State { get; set; }
+
+            [Required]
+            [Display(Name = "Zip Code")]
+            public string Zip { get; set; }
+
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
@@ -113,8 +134,16 @@ namespace MyFreeFormForm.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
+                user.FirstName = Input.FirstName;
+                user.LastName = Input.LastName;
+                user.City = Input.City;
+                user.State = Input.State;
+                user.Zip = Input.Zip;
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                //TODO: Create unique username based on first and last name and 4 digit unique sequence of numbers and letters
+                user.UserName = CreateUserName(Input.FirstName, Input.LastName);
+
+                await _userStore.SetUserNameAsync(user, user.UserName, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
@@ -154,27 +183,36 @@ namespace MyFreeFormForm.Areas.Identity.Pages.Account
             return Page();
         }
 
-        private IdentityUser CreateUser()
+        private MyIdentityUsers CreateUser()
         {
             try
             {
-                return Activator.CreateInstance<IdentityUser>();
+                return Activator.CreateInstance<MyIdentityUsers>();
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(MyIdentityUsers)}'. " +
+                    $"Ensure that '{nameof(MyIdentityUsers)}' is not an abstract class and has a parameterless constructor, or alternatively " +
                     $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
         }
 
-        private IUserEmailStore<IdentityUser> GetEmailStore()
+        private IUserEmailStore<MyIdentityUsers> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-            return (IUserEmailStore<IdentityUser>)_userStore;
+            return (IUserEmailStore<MyIdentityUsers>)_userStore;
+        }
+        private string CreateUserName(string firstName, string lastName)
+        {
+            var random = new Random();
+            var randomString = new string(Enumerable.Repeat("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 5)
+                               .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            // return the first 3 letters of the first name, the first 3 letters of the last name, and the random string
+            return firstName.Substring(0, 3) + lastName.Substring(0, 3) + randomString;
         }
     }
 }

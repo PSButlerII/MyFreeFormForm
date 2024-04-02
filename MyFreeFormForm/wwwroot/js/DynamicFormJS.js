@@ -267,16 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const select = document.createElement('select');
         select.className = 'form-control';
         select.name = `Fields[${index}].FieldType`;
-        // TODO: These fields are actually in an enum, so you can get the options from the server
 
-     /*   ['text', 'email', 'number', 'date'].forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            select.appendChild(option);
-        });*/
-
-        //get the field types from the server
         // Fetch the field types from the server
       fetch('FieldTypes')
             .then(response => response.json())
@@ -327,8 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function setupFormSubmission(form, rowIndex) {
         form.addEventListener('submit', async function (e) {
-            // TODO: Get the value for the field name associated with the form.  current it is not being added to the form data.
-
             e.preventDefault();
             console.time('setupFormSubmission')
             console.log('Form data from parameters', form)
@@ -387,6 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(form);
             formData.append('FormName', document.getElementById('FormName').value);
             formData.append('Description', document.getElementById('Description').value);
+            formData.append('UserId', loggedInUser);
             try {
                 console.time('FormSubmission');
                 const response = await fetch('dynamic', {
@@ -690,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('uploadedDocumentsPanel').innerHTML = html;
             })
             .catch(error => console.error('Error loading uploaded documents:', error));
-    }
+    }  
 
     window.loadForms = async function (formIds) {
         // Construct the URL for the LoadForms action

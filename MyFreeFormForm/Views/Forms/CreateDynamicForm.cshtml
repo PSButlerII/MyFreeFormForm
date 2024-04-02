@@ -36,11 +36,9 @@
                 </button>
                 <button type="button" id="addFieldBtn" class="btn btn-primary">Add Field</button>
                 <button asp-action="SubmitMultipleDynamicForms" disabled="true" asp-route-action="multipleDynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
-                @* //TODO: Implement the create template, which should either add or Create a new form from the currenly selected form *@
                 <button type="button" id="createTemplate" disabled="true" class="btn btn-primary">Create template</button>
                 <button id="addNoteBtn" type="button" class="btn btn-primary">Add Note</button>
                 <button onclick="window.print()" class="no-print">Print this form</button>
-                @* //TODO:  Need to implement the function that will enable the create template feature *@
                 @* <button type="button" id="hideSpinnerBtn" class="btn-secondary">hide spinner</button>*@
             </div>
 
@@ -62,7 +60,10 @@
                             <label for="Description">Description</label>
                             <input type="text" id="Description" name="Description" class="form-control" />
                         </div>
-
+                        <div>
+                            <label for="UserId">User Id</label>
+                            <input type="hidden" id="userId" name="UserId" value="@Model.UserId" />
+                        </div>
                         @for (int i = 0; i < Model.Fields.Count; i++)
                         {
                                <div class="form-group dynamic-field" id="field-group-@i">
@@ -108,6 +109,12 @@
                             <label for="Description">Description</label>
                             <input type="text" id="Description" name="Description" class="form-control" />
                         </div>
+                        <div>
+                            <label for="UserId">User Id</label>
+                             <input type="hidden" id="userId" name="UserId" value="@Model.UserId" />
+                        </div>
+
+
                         @for (int i = 0; i < Model.Fields.Count; i++)
                         {
                             <div class="carousel-item @if(i == 0) {

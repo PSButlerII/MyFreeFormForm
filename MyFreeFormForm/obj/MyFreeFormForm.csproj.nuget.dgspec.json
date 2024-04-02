@@ -54,6 +54,10 @@
               "target": "Package",
               "version": "[7.0.10, )"
             },
+            "Markdig": {
+              "target": "Package",
+              "version": "[0.36.2, )"
+            },
             "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.2, )"

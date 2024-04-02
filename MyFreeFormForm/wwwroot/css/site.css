@@ -84,4 +84,18 @@ body {
         input[type="checkbox"]:not(:checked):before {
             content: "?"; /* Unicode character for an unchecked box */
         }
+
+
+ /* for the markdown view */
+
+    .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+        /* Heading styles */
+    }
+
+    .markdown-content p {
+        /* Paragraph styles */
+    }
+
+    /* Continue styling other elements */
+
 }

@@ -8,6 +8,7 @@ using MyFreeFormForm.Services;
 using Newtonsoft.Json;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.IO;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace MyFreeFormForm.Controllers
@@ -69,9 +70,22 @@ namespace MyFreeFormForm.Controllers
         public IActionResult CreateDynamicForm()
         {
             var model = new DynamicFormModel();
+            var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // get logged-in userId
+            if (string.IsNullOrEmpty(loggedInUserId))
+            {
+                return Redirect("/Identity/Account/Login");
+            }
+            else
+            {
+                ViewData["UserId"] = loggedInUserId;
+                model.UserId = loggedInUserId;
+            }
+
             //TODO: Instead of using ViewBag, consider using a ViewModel.  This will make it easier to test and maintain the code.
             var formInstance = _context.Forms
                 .AsEnumerable() // AsEnumerable or ToList, depending on your context's capabilities
+                .Where(f => f.UserId == loggedInUserId)
                 .GroupBy(f => f.FormName)
                 .ToDictionary(g => g.Key, g => g.Select(f => f.FormId).ToList());
 
@@ -94,6 +108,7 @@ namespace MyFreeFormForm.Controllers
                 var formName = form["FormName"];
                 var description = form["Description"];
                 var formNotes = form["FormNotes"];
+                var userId = form["UserId"];
                 var indices = new HashSet<int>();
 
                 // Regular expression to match field indices
@@ -114,7 +129,8 @@ namespace MyFreeFormForm.Controllers
                     FormName = formName,
                     Description = description,
                     Fields = new List<DynamicField>(),
-                    FormNotes = new List<FormNotes>()
+                    FormNotes = new List<FormNotes>(),
+                    UserId = userId
                 };             
                 foreach (var index in indices)
                 {
@@ -123,14 +139,14 @@ namespace MyFreeFormForm.Controllers
                     var fieldTypeKey = $"Fields[{index}].FieldType";
 
                     var fieldNames = form[fieldNameKey];
-                    // fieldnames is a string that needs to be split into an array of strings
                     var fieldName = fieldNames.ToString().Split(",");
+
                     var fieldValues = form[fieldValueKey];
-                    // fieldValues is a string that needs to be split into an array of strings
                     var fieldValue = fieldValues.ToString().Split(",");
+
                     var fieldTypee = form[fieldTypeKey];
-                    // fieldTypee is a string that needs to be split into an array of strings
                     var fieldTypeee = fieldTypee.ToString().Split(",");
+
                     FieldType fieldType;
 
                     //var fieldType = form[fieldTypeKey];
@@ -152,8 +168,7 @@ namespace MyFreeFormForm.Controllers
                         {
                             FieldName = fieldName[i],
                             FieldValue = fieldValue[i],
-                            FieldType = fieldType
-                            // TODO: Need to uncomment the notes list in the dynamic model first, and then and it to the submission set parser.
+                            FieldType = fieldType                            
                         };
 
                         // Logging or other processing
