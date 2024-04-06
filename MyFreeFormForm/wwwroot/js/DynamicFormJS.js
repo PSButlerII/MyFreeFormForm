@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
         noteContainer.insertAdjacentHTML('beforeend', newNoteInput);
     }
 
-    document.getElementById('addNoteBtn').addEventListener('click', addNotesBasedOnVisibility);
+    document.getElementById('addNoteBtn')?.addEventListener('click', addNotesBasedOnVisibility);
 
     document.addEventListener('click', function (e) {
         if (e.target && e.target.classList.contains('removeNoteBtn')) {
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#dataCarousel').carousel('pause');
 
     // Listen for the slid event
-    carousel.addEventListener('slid.bs.carousel', function (event) {
+    carousel?.addEventListener('slid.bs.carousel', function (event) {
         currentIndex = event.to;
         console.log('Current index: ' + (currentIndex + 1) + ' of ' + totalItems);
         // Update the index display
@@ -104,14 +104,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /// Update the index display
     const updateIndexDisplay = () => {
-        const totalItems = carousel.querySelectorAll('.carousel-item').length;
+        const totalItems = carousel?.querySelectorAll('.carousel-item').length;
         document.getElementById('currentSlide').textContent = currentIndex + 1; // Adjust for human-friendly indexing
         document.getElementById('totalSlides').textContent = totalItems;
     };
 
     // Add A field to the Form
     // document.getElementById('addFieldBtn').addEventListener('click', addField);
-    document.getElementById('addFieldBtn').addEventListener('click', function () {
+    document?.getElementById('addFieldBtn')?.addEventListener('click', function () {
         addFieldBasedOnVisibility();
     });
 
@@ -130,9 +130,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    document.querySelector('#customNextBtn').addEventListener('click', handleCarouselControlClick);
+    document?.querySelector('#customNextBtn')?.addEventListener('click', handleCarouselControlClick);
 
-    document.querySelector('#customPrevBtn').addEventListener('click', handleCarouselControlClick);
+    document?.querySelector('#customPrevBtn')?.addEventListener('click', handleCarouselControlClick);
 
     // Initialize or update carousel after adding items dynamically
     bootstrap.Carousel.getOrCreateInstance(carousel);

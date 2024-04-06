@@ -1,0 +1,69 @@
+﻿@model IEnumerable<MyFreeFormForm.Models.Form>
+
+@{
+    ViewBag.Title = "Search Results";
+}
+
+<h2>Search Results</h2>
+
+<div class="mb-3">
+    <form asp-controller="FormsSearch" asp-action="SearchForms" method="get">
+        <div class="input-group mb-2">
+            <label for="searchTerm">Search Term</label>
+            <input id="searchTerm" type="text" class="form-control" name="searchTerm" placeholder="Search term...">
+        </div>
+                <label for="dateGroup">Date Fields</label>
+        <div>
+            <select id="dateGroup" class="form-control" name="Date Field">
+                <option value="">Select Date Field</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+            <div id="dateGroup" class="input-group mb-2">
+                <label for="startDate">Start Date</label>
+                <input id="startDate" type="date" class="form-control" name="startDate" placeholder="Start Date">
+                <label for="endDate">End Date</label>
+                <input id="endDate" type="date" class="form-control" name="endDate" placeholder="End Date">
+            </div>
+        </div>
+        <div class="input-group mb-2">
+            <label for="fieldNameDropdown">Field Name</label>
+            <select id="fieldNameDropdown" class="form-control" name="fieldName">
+                <option value="">Select Field Name</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+            <label for="minValue">Min Value</label>
+            <input id="minValue" type="number" class="form-control" name="minValue" placeholder="Min Value">
+            <label for="maxValue">Max Value</label>
+            <input id="maxValue" type="number" class="form-control" name="maxValue" placeholder="Max Value">
+
+                
+        </div>
+        <button id="searchBtn" class="btn btn-outline-secondary" type="submit">Search</button>
+    </form>
+
+</div>
+
+
+<!-- Container for dynamically inserting search results -->
+<div id="searchResults"></div>
+
+@if (Model != null && Model.Any())
+{
+    <!-- Container for dynamically inserting search results -->
+    <div id="searchResults" class="carousel slide">
+        <div class="carousel-inner">
+
+        </div>
+        <button class="carousel-control-prev" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+
+}
+else
+{
+    <p>No results found.</p>
+}

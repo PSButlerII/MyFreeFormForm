@@ -58,7 +58,7 @@ namespace MyFreeFormForm.Services
                         Required = true,
                         // Assuming fieldOptions is correctly set before this point or within the loop
                         FieldOptions = fieldOptions,
-                        Form = myForm // This sets the relationship
+                        //Form = myForm // This sets the relationship
                     };
                     myForm.FormFields.Add(formField);
                     _context.FormFields.Add(formField);

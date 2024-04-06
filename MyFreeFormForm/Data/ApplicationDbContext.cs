@@ -26,7 +26,7 @@ namespace MyFreeFormForm.Data
             // For example, configuring relationships or constraints
             modelBuilder.Entity<Form>()
                 .HasMany(f => f.FormFields)
-                .WithOne(ff => ff.Form)
+                .WithOne()
                 .HasForeignKey(ff => ff.FormId);
 
             modelBuilder.Entity<Form>()

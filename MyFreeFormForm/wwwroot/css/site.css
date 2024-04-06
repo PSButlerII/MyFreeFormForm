@@ -96,6 +96,34 @@ body {
         /* Paragraph styles */
     }
 
+
+    /* THIS IS FOR THE SEARCHRESULTS CARD*/
+    .form-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 10px;
+        background-color: #f9f9f9;
+    }
+
+        .form-card h3 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        .form-card ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+            .form-card ul li {
+                margin: 10px 0;
+                font-size: 16px;
+            }
+
+
+
+
     /* Continue styling other elements */
 
 }

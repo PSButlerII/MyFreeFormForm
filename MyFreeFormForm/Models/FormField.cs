@@ -14,6 +14,6 @@ namespace MyFreeFormForm.Models
         public string FieldValue { get; set; }
         public bool Required { get; set; }
 
-        public Form Form { get; set; }
+        //public Form Form { get; set; }
     }
 }

@@ -9,6 +9,8 @@ using MyFreeFormForm.Services;
 using Serilog;
 using Serilog.Events;
 using System.Text.Json.Serialization;
+using MyFreeFormForm.Models;
+using Nest;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddTransient<FileParser>();
 
 builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(20); // You can adjust the timeout as needed
@@ -73,11 +76,23 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader());
 });
 
+// Add ElasticsearchService
+/*builder.Services.AddSingleton<ElasticsearchService>(provider =>
+{
+    var uri = "http://localhost:9200";
+    return new ElasticsearchService(uri);
+});*/
+
+builder.Services.AddScoped<SearchService>();
+
+
+
 // In Configure, before UseRouting or UseEndpoints
-
-
 AddAuthorizationPolicies(builder.Services);
 AddScoped(builder.Services);
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -96,6 +111,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthorization();
 
@@ -104,7 +120,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHealthChecks("/health");
-app.UseCors("AllowSpecificOrigin");
+
 
 app.MapRazorPages();
 
