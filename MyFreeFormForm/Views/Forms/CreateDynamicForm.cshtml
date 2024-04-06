@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar for Uploaded Documents -->
-        <div class="col-md-3">
+        <div id="documentsBox" class="col-md-3">
             <div class="p-3 border bg-light">
                 <h5>Uploaded Documents</h5>
                 <div id="uploadedDocumentsPanel">
@@ -16,7 +16,7 @@
         </div>
 
          <!--Form Notes-->
-         <div class="col-md-3">
+         <div id="formsNotesbox" class="col-md-3">
             <div class="p-3 border
                 bg-light">
                 <h5>Form Notes</h5>
@@ -48,12 +48,13 @@
                 <button asp-action="SubmitMultipleDynamicForms" disabled="true" asp-route-action="multipleDynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
                 <button type="button" id="createTemplate" disabled="true" class="btn btn-primary">Create template</button>
                 <button id="addNoteBtn" type="button" class="btn btn-primary">Add Note</button>
-                <button onclick="window.print()" class="no-print">Print this form</button>
+                <button type="button" onclick="window.print()" class="no-print">Print this form</button>
+                @* <button id="printBtn" type="button" class="no-print">Print this form</button> *@
                 @* <button type="button" id="hideSpinnerBtn" class="btn-secondary">hide spinner</button>*@
             </div>
 
             <!-- Form Number Input -->
-            <div class="mb-3">
+            <div id="formNumberPanel" class="mb-3">
                 <label for="formNumberInput">Enter Form Number:</label>
                 <input type="number" id="formNumberInput" class="form-control short-input" min="1" placeholder="Form number" />
                 <button id="goToFormBtn" class="btn btn-secondary mt-2">Go to Form</button>
@@ -61,7 +62,7 @@
 
             <!-- Dynamic Form -->
             <div id="dynamicForm">
-                    <form asp-action="SubmitDynamicForm" asp-route-action="dynamic" method="post">
+                <form asp-action="SubmitDynamicForm" asp-route-action="dynamic" method="post" style="display:block;">
                         <div>
                             <label for="FormName">Form Name</label>
                             <input type="text" id="FormName" name="FormName" class="form-control" />
@@ -71,7 +72,7 @@
                             <input type="text" id="Description" name="Description" class="form-control" />
                         </div>
                         <div>
-                            <label for="UserId">User Id</label>
+                            <label style="display:none;" for="UserId">User Id</label>
                             <input type="hidden" id="userId" name="UserId" value="@Model.UserId" />
                         </div>
                         @for (int i = 0; i < Model.Fields.Count; i++)
@@ -120,7 +121,7 @@
                             <input type="text" id="Description" name="Description" class="form-control" />
                         </div>
                         <div>
-                            <label for="UserId">User Id</label>
+                        <label style="display:none;" for="UserId">User Id</label>
                              <input type="hidden" id="userId" name="UserId" value="@Model.UserId" />
                         </div>
 

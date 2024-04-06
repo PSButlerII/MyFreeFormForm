@@ -47,43 +47,68 @@ body {
 
     /* for printing forms*/
 @media print {
+    /* Hide all elements that should not be printed */
+    .remove-field-btn, #btn btn-primary .no-print, .staticSubmitBtn {
+        display: none !important;
+    }
+    button{
+        display: none !important;
+    }
+    /* Add styles to hide specific sections */
+    #Btn-Div, #formsNotesbox, #documentsBox, #formNumberPanel, #customPrevBtn, #customNextBtn {
+        display: none !important;
+    }
+
+    /* Optionally adjust the layout */
     body, html {
-        background: #FFF;
-        color: #000;
-    }
-
-    nav, footer, .no-print {
-        display: none;
-    }
-
-    .print-friendly {
-        width: 100%;
-        display: block;
-    }
-    /* Adjustments to make inputs look like regular text */
-    input, textarea {
-        border: none;
-        font-family: Times, "Times New Roman", serif;
         font-size: 12pt;
+        color: black;
+        background: white;
     }
 
-    .remove-thead {
-        display: none;
-        }
+    /* Ensure all fields are fully visible */
+    input, textarea, select {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        page-break-inside: avoid;
+    }
 
-        input[type="checkbox"]:before {
-            content: "";
-            display: inline-block;
-            margin-right: 5px;
-        }
+    /* Print values instead of input fields */
+    input[type="text"], input[type="Email"], input[type="Number"], input[type="Date"], select, textarea {
+        display: block;
+        width: 100%;
+        height: auto;
+        padding: 0;
+        margin: 0 0 0.5em 0;
+        border: 0;
+        color: black;
+        background-color: transparent !important;
+        page-break-inside: avoid;
+    }
+    header {
+        display: none !important;
+    }
+    input[type="hidden"] {
+        display: none !important;
+    }
 
-        input[type="checkbox"]:checked:before {
-            content: "?"; /* Unicode character for a checked box */
-        }
+    /* Adjust labels */
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 0.25em;
+    }
 
-        input[type="checkbox"]:not(:checked):before {
-            content: "?"; /* Unicode character for an unchecked box */
-        }
+    /* Style adjustments for the printed form */
+    .form-group {
+        margin-bottom: 1em;
+        page-break-inside: avoid;
+    }
+}
+
 
 
  /* for the markdown view */
@@ -97,33 +122,33 @@ body {
     }
 
 
-    /* THIS IS FOR THE SEARCHRESULTS CARD*/
-    .form-card {
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 10px;
-        background-color: #f9f9f9;
-    }
+/* THIS IS FOR THE SEARCHRESULTS CARD*/
+.form-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
 
-        .form-card h3 {
-            color: #333;
-            margin-top: 0;
-        }
+.form-card h3 {
+    color: #333;
+    margin-top: 0;
+}
 
-        .form-card ul {
-            list-style-type: none;
-            padding: 0;
-        }
+.form-card ul {
+    list-style-type: none;
+    padding: 0;
+}
 
-            .form-card ul li {
-                margin: 10px 0;
-                font-size: 16px;
-            }
+.form-card ul li {
+    margin: 10px 0;
+    font-size: 16px;
+}
 
 
 
 
     /* Continue styling other elements */
 
-}
+

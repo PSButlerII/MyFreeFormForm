@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Determine the target form based on the context
         const targetForm = context === 'carouselForm'
             ? document.querySelector('.carousel-item.active form') || document.querySelector('.carousel-item.active')
-            : document.querySelector('#staticForm') || document.querySelector('form');
+            : document.querySelector('#staticForm') || document.querySelector('#dynamicForm form');
 
         // Use the current timestamp as a unique identifier for each field group
         let uniqueId = Date.now();
