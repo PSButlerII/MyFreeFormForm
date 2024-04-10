@@ -75,7 +75,7 @@ namespace MyFreeFormForm.Controllers
         }
 
         [HttpGet("SearchFormsAsync")]
-        public async Task<IActionResult> SearchFormsAsync(string userId, string searchTerm, DateTime? startDate, DateTime? endDate, string? fieldName, string? minValue, string? maxValue, string? dateField)
+        public async Task<IActionResult> SearchFormsAsync(string userId, string? searchTerm, DateTime? startDate, DateTime? endDate, string? fieldName, string? minValue, string? maxValue, string? dateField)
         {
             try
             {
@@ -89,7 +89,13 @@ namespace MyFreeFormForm.Controllers
                 if (startDate.HasValue && endDate.HasValue)
                 {
                     // Assume we have a predefined way to handle date range in SearchCriteria
-                    criteria.Add(new SearchCriteria { FieldName = fieldName, DateField = dateField, FieldType = Helpers.FieldType.Date, FieldValue = $"{startDate.Value.ToShortDateString()} to {endDate.Value.ToShortDateString()}" }); 
+                    criteria.Add(new SearchCriteria { FieldName = fieldName, DateField = dateField, FieldType = Helpers.FieldType.Date, FieldValue = $"{startDate.Value.ToShortDateString()} to {endDate.Value.ToShortDateString()}",StartDate=startDate, EndDate = endDate }); 
+                }
+
+                else if (startDate.HasValue)
+                {
+                    // Assume we have a predefined way to handle date range in SearchCriteria
+                    criteria.Add(new SearchCriteria { FieldName = fieldName, DateField = dateField, FieldType = Helpers.FieldType.Date, FieldValue = $"{startDate.Value.ToShortDateString()}", StartDate=startDate });
                 }
                 // Similar for fieldName, minValue, and maxValue
                 if (fieldName != null)
@@ -113,7 +119,6 @@ namespace MyFreeFormForm.Controllers
                 return StatusCode(500, "Error searching forms.");
             }
         }
-
         // Add additional methods as needed for your application.
     }
 }

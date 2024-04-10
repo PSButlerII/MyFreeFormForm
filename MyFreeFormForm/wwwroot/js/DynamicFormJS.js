@@ -13,6 +13,20 @@ document.addEventListener('DOMContentLoaded', function () {
     let noteIndex = 1; // Start with 1 because 0 is already in the HTML
     let formIdList = [];
     let firstForm = [];
+    let fieldTypePatterns = {};
+    //let isValid = true;
+
+    async function getFieldTypePatterns() {
+        try {
+            const response = await fetch('/forms/patterns');
+            if (!response.ok) throw new Error('Failed to fetch field patterns');
+            fieldTypePatterns = await response.json();
+        } catch (error) {
+            console.error('Error fetching field patterns:', error);
+        }
+
+    }
+    getFieldTypePatterns();  
 
     function showSpinnerModal() {
         var spinnerModal = new bootstrap.Modal(document.getElementById('spinnerModal'), {
@@ -136,10 +150,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize or update carousel after adding items dynamically
     bootstrap.Carousel.getOrCreateInstance(carousel);
-    updateIndexDisplay();
+    //updateIndexDisplay();
 
     // Delegate event for dynamically added remove buttons
-    carouselInner.addEventListener('click', function (e) {
+    carouselInner?.addEventListener('click', function (e) {
         if (e.target && e.target.classList.contains('remove-field-btn')) {
             console.log('Remove button clicked');
             const fieldGroup = e.target.closest('.dynamic-field');
@@ -151,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Delegate event for dynamically added remove buttons
-    form.addEventListener('click', function (e) {
+    form?.addEventListener('click', function (e) {
         if (e.target.classList.contains('remove-field-btn')) {
             const fieldGroup = e.target.closest('.dynamic-field');
             console.log('Remove button clicked for form')
@@ -187,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // If the user is logged in, the upload button will be visible
 
     // get the logged in user
-    console.log('Logged in User:', loggedInUser);
+    //console.log('Logged in User:', loggedInUser);
     if (loggedInUser) {
         document.getElementById('submitAllData').disabled = false;
         document.getElementById('createTemplate').disabled = false;        
@@ -221,9 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fieldGroup.appendChild(fieldTypeSelect);
 
         // Field Value
-        //const fieldValueInput = createInputField(`Fields[${index}].Value`, 'Value', 'text');
         const fieldValueInput = createInputField(`Fields[${index}].FieldValue`, 'Value', 'text');
-        //add an id to the field value input
         fieldValueInput.id = 'Field-Value';
         fieldGroup.appendChild(createLabel('Value'));
         fieldGroup.appendChild(fieldValueInput);
@@ -237,11 +249,42 @@ document.addEventListener('DOMContentLoaded', function () {
         fieldGroup.appendChild(removeBtn);
 
         // Append the constructed field group to the target form
-        targetForm.appendChild(fieldGroup);
+        targetForm.appendChild(fieldGroup);     
 
         // Event listener to change the input field type based on the selected option
         fieldTypeSelect.addEventListener('change', function (e) {
             fieldValueInput.type = e.target.value;
+        });
+
+        // Adjusted input event listener using patterns
+        fieldValueInput.addEventListener('input', function (e) {
+            const fieldType = fieldTypeSelect.value; // Assuming this gives you 'Text', 'Number', etc.
+            let isValid;
+            // Ensure the pattern is correctly fetched and used
+            if (fieldTypePatterns[fieldType]) {
+                const pattern = new RegExp(fieldTypePatterns[fieldType].Pattern);
+                const parsedValue = parseInt(this.value, 10);
+                //const parsedValue = parseInt(e.target.value, 10);
+e
+                if (!isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 100) {
+                    isValid = pattern.test(parsedValue);
+                    console.log('New Value:', parsedValue);
+                }
+                else {
+                     isValid = pattern.test(this.value);
+                }
+                if (!isValid) {
+                    // Consider using a more user-friendly way than alert
+                    //alert(fieldTypePatterns[fieldType].ErrorMessage);
+                    this.classList.add('is-invalid'); // Use Bootstrap class for invalid input
+                    // clear the current character that was entered if it does not match the pattern
+                    this.value = this.value.slice(0, -1);
+                    //this.classList.remove('is-invalid');
+
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            }
         });
     }
 
@@ -406,9 +449,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (uploadForm) {
         console.time('uploadForm')
+        //make sure 
         uploadForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const formData = new FormData(this);
+            // if formData is empty or blank , do not submit the form
+            if (!formData || formData.length == 0) {
+                console.log('Form is empty');
+                return;
+            }
             console.log('Show Spinner');
             showSpinnerModal();
             try {
@@ -417,10 +466,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: formData,
                     headers: { 'Accept': 'application/json', }
                 });
-                if (!response.ok) throw new Error('Network response was not ok.');
+                if (!response.ok) {
+
+                    throw new Error('Network response was not ok.');
+                }
                 const data = await response.json();
 
-                console.timeEnd('uploadForm')
 
                 console.time('handleUploadResponse')
                 handleUploadResponse(data);              
@@ -432,11 +483,13 @@ document.addEventListener('DOMContentLoaded', function () {
             //hideSpinnerModal();
             
         });
+        console.timeEnd('uploadForm')
     }
 
     async function handleUploadResponse(data) {
         if (data.success && data.fields) {
             const clearFields = confirm('Do you want to clear existing fields before adding new ones?');
+
             if (clearFields) {
                 resetCarousel();
                 resetForm();
@@ -485,6 +538,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         else {
             console.error('Upload failed', data.message);
+            alert('Upload failed: ' + data.message);
+            hideSpinnerModal();
         }
         $('#staticSubmitBtn').hide();
     }

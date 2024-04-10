@@ -56,11 +56,40 @@ namespace MyFreeFormForm.Services
                         FieldType = field.FieldType.ToString(),
                         FieldValue = field.FieldValue,
                         Required = true,
-                        // Assuming fieldOptions is correctly set before this point or within the loop
                         FieldOptions = fieldOptions,
-                        //Form = myForm // This sets the relationship
                     };
-                    myForm.FormFields.Add(formField);
+                    if (field.FieldType == FieldType.Date)
+                    {
+                        try
+                        {
+                            // Attempt to parse field.FieldValue as a DateTime
+                            if (DateTime.TryParse(field.FieldValue, out var dateValue))
+                            {
+                                formField.FieldDateValue = dateValue;
+                            }
+
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message, $"Could not parse date: {field.FieldValue} ");
+                        }
+                    }
+                    else if (field.FieldType == FieldType.DateTime)
+                    {
+                        try
+                        {
+                            // Attempt to parse field.FieldValue as a DateTimeOffset
+                            if (DateTimeOffset.TryParse(field.FieldValue, out var dateTimeOffsetValue))
+                            {
+                                formField.FieldDateTimeOffsetValue = dateTimeOffsetValue;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message, $"Could not parse date: {field.FieldValue} ");
+                        }
+                    }
+                        myForm.FormFields.Add(formField);
                     _context.FormFields.Add(formField);
 
                 }

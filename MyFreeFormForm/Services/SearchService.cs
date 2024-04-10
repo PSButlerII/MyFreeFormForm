@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.SqlServer.Server;
 using MyFreeFormForm.Data;
 using MyFreeFormForm.Helpers;
 using MyFreeFormForm.Models;
@@ -26,34 +27,44 @@ namespace MyFreeFormForm.Services
                 // Add more cases as necessary for your application
             }
 
-            return await query.ToListAsync();
-        }
+            string sqlQuery = query.ToQueryString();
+            Console.WriteLine("Console Logging the Query here: ",sqlQuery); // Or use any logging mechanism
 
+            var result = await query.ToListAsync();
+            // Now, since we have the results, can we do something with them? Like query the form fields? for the correct dates information since they are stored as strings?
+            // We can do that here, or in a separate method, depending on the complexity of the query.
+            // For example, we can query the form fields for the correct date information here, or in a separate method.
+            // So, I would just need to parse the formfield value, that has a field type of date, to a DateTime object. and compare it to the date information in the criteria. Is that possible?
+            
+
+
+            return result;
+        }
 
         private IQueryable<Form> ApplyCriterion(IQueryable<Form> query, SearchCriteria criterion)
         {
-            if (criterion.StartDate.HasValue && string.IsNullOrEmpty(criterion.DateField))
+            if (!string.IsNullOrEmpty(criterion.DateField))
             {
-                if (criterion.DateField.ToLower() == "CreatedDate".ToLower())
+                DateTime startDate = criterion.StartDate ?? DateTime.MinValue;
+                DateTime endDate = criterion.EndDate?.AddDays(1).AddTicks(-1) ?? DateTime.MaxValue;
+                if (criterion.DateField.Equals("CreatedDate", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(f => f.CreatedDate >= criterion.StartDate.Value);
+                    query = query.Where(f => f.CreatedDate >= startDate && f.CreatedDate <= endDate);
                 }
-              
-            }
-
-            if (criterion.EndDate.HasValue && string.IsNullOrEmpty(criterion.DateField))
-            {
-                if (criterion.DateField.ToLower() == "CreatedDate".ToLower())
+                // Assuming "UpdatedDate" is also a direct property of the Form
+                else if (criterion.DateField.Equals("UpdatedDate", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Adjust endDate to ensure it includes the entire day
-                    DateTime adjustedEndDate = criterion.EndDate.Value.Date.AddDays(1).AddTicks(-1);
-                    query = query.Where(f => f.CreatedDate <= adjustedEndDate);
+                    query = query.Where(f => f.UpdatedDate.HasValue && f.UpdatedDate >= startDate && f.UpdatedDate <= endDate);
                 }
+                // If criterion.DateField is not UpdatedDate or CreatedDate, it must be a field in FormFields
                 else
                 {
-                    DateTime adjustedEndDate = criterion.EndDate.Value.Date.AddDays(1).AddTicks(-1);
-                    query = query.Where(f => f.FormFields.Any(ff => ff.FieldName == criterion.FieldName &&
-                                        EF.Functions.Like(ff.FieldValue, $"%{criterion.FieldValue}%")));
+                    if (!string.IsNullOrEmpty(criterion.DateField) && criterion.DateField != "CreatedDate" && criterion.DateField != "UpdatedDate")
+                    {
+                        //Now I've added a FieldDateValue for dates, and a FieldDateTimeOffsetValue for DateTime to the FormFields table, so I can query the date information from there. Both will need to be searched.
+                        query = query.Where(f => f.FormFields.Any(ff => ff.FieldName == criterion.DateField && ff.FieldType == FieldType.Date.ToString() && ff.FieldDateValue >= startDate && ff.FieldDateValue <= endDate));
+                    };
+                    /*query = query.Where(f => f.FormFields.Any(ff => ff.FieldName == criterion.DateField && ff.FieldType == FieldType.DateTime.ToString() && ff.FieldDateTimeOffsetValue >= startDate && ff.FieldDateTimeOffsetValue <= endDate));*/
                 }
             }
 
@@ -75,16 +86,6 @@ namespace MyFreeFormForm.Services
                         ff.FieldValue == criterion.FieldValue));
                 }
             }
-
-            else if (criterion.FieldType == FieldType.Date)
-            {
-                // Direct comparison using a known format, e.g., "yyyyMMdd" for dates.
-                query = query.Where(f => f.FormFields.Any(ff =>
-                    ff.FieldName == criterion.FieldName &&
-                    ff.FieldValue == DateTime.Parse(criterion.FieldValue).ToString("yyyyMMdd"))); // Ensure format matches your data
-            }
-
-            // Add more cases as necessary for your application
             return query;
         }
     }

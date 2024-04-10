@@ -23,5 +23,4 @@ namespace MyFreeFormForm.Models
         //public List<IFormFile> Files { get; set; } = new List<IFormFile>();
        //public Form FormInstance { get; set; }
     }
-
 }

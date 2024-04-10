@@ -3,6 +3,7 @@
     let fieldNameDropdown = document.getElementById('fieldNameDropdown');
     let dateFieldDropdown = document.getElementById('dateGroup');
     let searchButton = document.getElementById('searchBtn');
+    let resetButton = document.getElementById('resetBtn');
 
 
     console.log('FormsSearch.js loaded');
@@ -14,7 +15,7 @@
                 const dropdown = document.getElementById('fieldNameDropdown');
                 data.forEach(name => {
                     const option = new Option(name, name); // new Option(text, value)
-                    dropdown.add(option);
+                    dropdown?.add(option);
                 });
             })
             .catch(error => console.error('Error fetching field names:', error));
@@ -28,7 +29,7 @@
                 const dropdown = document.getElementById('dateGroup');
                 data.forEach(name => {
                     const option = new Option(name, name); // new Option(text, value)
-                    dropdown.add(option);
+                    dropdown?.add(option);
                 });
             })
             .catch(error => console.error('Error fetching Date fields :', error));
@@ -123,5 +124,32 @@
             searchResults.appendChild(card);
         });
     }
+
+    // Reset form fields and UI elements
+    function resetForm() {
+        // Clear input fields
+        document.getElementById('searchTerm').value = '';
+        document.querySelector('input[name="startDate"]').value = '';
+        document.querySelector('input[name="endDate"]').value = '';
+        document.querySelector('input[name="minValue"]').value = '';
+        document.querySelector('input[name="maxValue"]').value = '';
+
+        // Reset dropdowns to their initial state
+        fieldNameDropdown.selectedIndex = 0;
+        dateFieldDropdown.selectedIndex = 0;
+
+        // Clear search results
+        let searchResults = document.getElementById('searchResults');
+        searchResults.innerHTML = '';
+
+        // Optionally, re-fetch initial data if your dropdowns are dynamically populated
+/*        GetFieldNames();
+        GetDateFields();*/
+    }
+
+    // Event listener for the reset button
+    resetButton?.addEventListener('click', function () {
+        resetForm();
+    });
 
 });

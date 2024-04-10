@@ -128,13 +128,22 @@
 
                         @for (int i = 0; i < Model.Fields.Count; i++)
                         {
+@*                             var field = Model.Fields[i];
+                            var pattern = FieldTypePatterns.GetPattern(field.FieldType);
+                            var errorMessage = FieldTypePatterns.GetErrorMessage(field.FieldType); *@
                             <div class="carousel-item @if(i == 0) {
                         <text>active</text> }">
                                 <form asp-action="SubmitDynamicForm" asp-route-action="dynamic"  method="post">
                                     <div class="form-group dynamic-field" id="field-group-@i">
                                         
                                         <label>@Model.Fields[i].FieldName</label>
-                                        <input id="Field-Value" type="@Model.Fields[i].FieldType.ToString().ToLower()" name="Fields[@i].FieldName" class="form-control" />
+                                        <input id="Field-Value"
+                                        type="@Model.Fields[i].FieldType.ToString().ToLower()"
+                                        name="Fields[@i].FieldName"
+                                        class="form-control"
+@*                                         pattern="@pattern"
+                                        title="@errorMessage" *@ /> <!-- Use title attribute for the error message -->
+                                        />
                                         <!-- Include a button to remove the field -->
                                         <div class="notes-section"  id="notesSection-@i"></div>
                                         <button type="button" class="remove-field-btn">Remove</button>

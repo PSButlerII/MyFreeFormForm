@@ -11,6 +11,7 @@ namespace MyFreeFormForm.Helpers
         Email,
         Number,
         Date,
+        DateTime,
         tel,
         url,
         Address,
@@ -19,7 +20,6 @@ namespace MyFreeFormForm.Helpers
         IpAddress,
         PostalCode,
         Country,
-        radio,
 
         //TODO: will be adding "file" and "password" in the future but need to figure out how to handle those. Specifically, file uploads.
         //TODO: will be adding "select" and "radio" in the future but need to figure out how to handle those. Specifically, file uploads.

@@ -46,12 +46,12 @@ namespace MyFreeFormForm.Services
                     {
                         try
                         {
-                            var form = new FormCollection(JsonConvert.DeserializeObject<Dictionary<string, Microsoft.Extensions.Primitives.StringValues>>(item.FormModelData));
+                            //var form = new FormCollection(JsonConvert.DeserializeObject<Dictionary<string, Microsoft.Extensions.Primitives.StringValues>>(item.FormModelData));
 
                             var model = JsonConvert.DeserializeObject<DynamicFormModel>(item.FormModelData);
 
                             // Create a serializedFormData string from the form
-                            var serializedFormData = JsonConvert.SerializeObject(form);
+                           // var serializedFormData = JsonConvert.SerializeObject(form);
 
                             if (model != null)
                             {
@@ -63,8 +63,9 @@ namespace MyFreeFormForm.Services
                                 _monitor.IsHealthy = true;
                             }
                             /*
-                                                        dbContext.Update(item);
-                                                        await dbContext.SaveChangesAsync(stoppingToken);*/
+                            dbContext.Update(item);
+                            await dbContext.SaveChangesAsync(stoppingToken);
+                            */
                         }
                         // Catch sqlExceptions
                         catch (SqlException sqle)

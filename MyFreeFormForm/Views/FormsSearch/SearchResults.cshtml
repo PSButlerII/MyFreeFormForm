@@ -8,6 +8,7 @@
 
 <div class="mb-3">
     <form asp-controller="FormsSearch" asp-action="SearchForms" method="get">
+        <button id="resetBtn" type="button">Reset Form</button>
         <div class="input-group mb-2">
             <label for="searchTerm">Search Term</label>
             <input id="searchTerm" type="text" class="form-control" name="searchTerm" placeholder="Search term...">
@@ -52,7 +53,6 @@
     <!-- Container for dynamically inserting search results -->
     <div id="searchResults" class="carousel slide">
         <div class="carousel-inner">
-
         </div>
         <button class="carousel-control-prev" data-bs-slide="prev">
             <span class="carousel-control-prev-icon"></span>
@@ -61,7 +61,6 @@
             <span class="carousel-control-next-icon"></span>
         </button>
     </div>
-
 }
 else
 {

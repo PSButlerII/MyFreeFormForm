@@ -102,6 +102,7 @@ namespace MyFreeFormForm.Controllers
         [HttpPost("dynamic")]
         public async Task<IActionResult> SubmitDynamicForm([FromForm] IFormCollection form)
         {
+            var validationErrors = new List<string>();
             if (ModelState.IsValid)
             {
                 //var form = await Request.ReadFormAsync();
@@ -144,38 +145,35 @@ namespace MyFreeFormForm.Controllers
                     var fieldValues = form[fieldValueKey];
                     var fieldValue = fieldValues.ToString().Split(",");
 
-                    var fieldTypee = form[fieldTypeKey];
-                    var fieldTypeee = fieldTypee.ToString().Split(",");
-
-                    FieldType fieldType;
-
-                    //var fieldType = form[fieldTypeKey];
+                    var fieldTypes = form[fieldTypeKey];
+                    var fieldTypeee = fieldTypes.ToString().Split(",");
 
                     for (var i = 0; i < fieldName.Length; i++)
                     {
                         // Using Enum.TryParse with case-insensitive parsing
-                        if (Enum.TryParse<FieldType>(fieldTypeee[i], ignoreCase: true, out var parsedFieldType))
+                        if (Enum.TryParse<FieldType>(fieldTypes[i], ignoreCase: true, out var fieldType))
                         {
-                            fieldType = parsedFieldType;
+                            var pattern = FieldTypePatterns.GetPattern(fieldType);
+                            var errorMessage = FieldTypePatterns.GetErrorMessage(fieldType);
+
+                            if (Regex.IsMatch(fieldValues[i], pattern))
+                            {
+                                dynamicFormModel.Fields.Add(new DynamicField
+                                {
+                                    FieldName = fieldNames[i],
+                                    FieldValue = fieldValues[i],
+                                    FieldType = fieldType
+                                });
+                            }
+                            else
+                            {
+                                validationErrors.Add($"Field '{fieldNames[i]}' error: {errorMessage}");
+                            }
                         }
                         else
                         {
-                            // Optionally handle the case where parsing fails
-                            fieldType = FieldType.Text; // Default or error handling
+                            validationErrors.Add($"Field '{fieldNames[i]}' has an unsupported field type '{fieldTypes[i]}'.");
                         }
-
-                        var dynamicField = new DynamicField
-                        {
-                            FieldName = fieldName[i],
-                            FieldValue = fieldValue[i],
-                            FieldType = fieldType                            
-                        };
-
-                        // Logging or other processing
-                        Console.BackgroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"FieldName: {dynamicField.FieldName}, FieldValue: {dynamicField.FieldValue}, FieldType: {dynamicField.FieldType}");
-
-                        dynamicFormModel.Fields.Add(dynamicField);
                     }
                     // Add the notes to the formNotes list
                     // Note sure if "Note" is the correct key to use here.  Need to check the key in the form data
@@ -194,8 +192,11 @@ namespace MyFreeFormForm.Controllers
                             });
                         }
                     }
-                    await _formsDbc.EnqueueFormSubmissionAsync(dynamicFormModel);
-                    return Json(new { success = true, message = "Form submission queued" });
+                    if (!validationErrors.Any())
+                    {
+                        await _formsDbc.EnqueueFormSubmissionAsync(dynamicFormModel);
+                        return Json(new { success = true, message = "Form submission queued" });
+                    }
                 }
             }
             else
@@ -276,26 +277,42 @@ namespace MyFreeFormForm.Controllers
             }
         }
 
-   /*     /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        [HttpGet("MyDocuments")]
-        public async Task<IActionResult> DisplayForm(int formId)
+        [HttpGet("patterns")]
+        public IActionResult GetFieldTypePatterns()
         {
-            var form = await _context.Forms
-                .Include(f => f.FormFields)
-                .Include(f => f.FormNotes)
-                .FirstOrDefaultAsync(f => f.FormId == formId);
+            var patterns = new Dictionary<string, FieldTypePatternViewModel>();
 
-            if (form == null)
+            foreach (FieldType fieldType in Enum.GetValues(typeof(FieldType)))
             {
-                return NotFound();
+                patterns.Add(fieldType.ToString(), new FieldTypePatternViewModel
+                {
+                    Pattern = FieldTypePatterns.GetPattern(fieldType),
+                    ErrorMessage = FieldTypePatterns.GetErrorMessage(fieldType)
+                });
             }
 
-            return View(form);
-        }*/
+            return Ok(patterns);
+        }
+        /*     /// <summary>
+             /// 
+             /// </summary>
+             /// <param name="formId"></param>
+             /// <returns></returns>
+             [HttpGet("MyDocuments")]
+             public async Task<IActionResult> DisplayForm(int formId)
+             {
+                 var form = await _context.Forms
+                     .Include(f => f.FormFields)
+                     .Include(f => f.FormNotes)
+                     .FirstOrDefaultAsync(f => f.FormId == formId);
+
+                 if (form == null)
+                 {
+                     return NotFound();
+                 }
+
+                 return View(form);
+             }*/
 
         /// <summary>
         ///  
