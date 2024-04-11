@@ -34,8 +34,7 @@ namespace MyFreeFormForm.Services
             // Now, since we have the results, can we do something with them? Like query the form fields? for the correct dates information since they are stored as strings?
             // We can do that here, or in a separate method, depending on the complexity of the query.
             // For example, we can query the form fields for the correct date information here, or in a separate method.
-            // So, I would just need to parse the formfield value, that has a field type of date, to a DateTime object. and compare it to the date information in the criteria. Is that possible?
-            
+            // So, I would just need to parse the formfield value, that has a field type of date, to a DateTime object. and compare it to the date information in the criteria. Is that possible?           
 
 
             return result;
@@ -71,9 +70,16 @@ namespace MyFreeFormForm.Services
             if (criterion.FieldType == FieldType.Text)
             {
                 // This handles text fields; extend with additional conditions as needed
-                query = query.Where(f => f.FormFields.Any(ff =>
-                    ff.FieldName == criterion.FieldName &&
-                    EF.Functions.Like(ff.FieldValue, $"%{criterion.FieldValue}%")));
+                var fieldName = criterion.FieldName;
+                if(string.IsNullOrEmpty(fieldName))
+                {
+                    // query for all fields that contain the search term
+                    query = query.Where(f => f.FormFields.Any(ff => EF.Functions.Like(ff.FieldValue, $"%{criterion.FieldValue}%")));
+                }
+                else
+                {
+                    query = query.Where(f => f.FormFields.Any(ff => ff.FieldName == criterion.FieldName && EF.Functions.Like(ff.FieldValue, $"%{criterion.FieldValue}%")));
+                }
             }
 
             else if (criterion.FieldType == FieldType.Number)
@@ -87,7 +93,10 @@ namespace MyFreeFormForm.Services
                 }
             }
             //TODO: Add a case for the form name
-
+            else if (criterion.FormName != null)
+            {
+                query = query.Where(f => f.FormName == criterion.FormName);
+            }
             return query;
         }
     }

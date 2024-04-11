@@ -4,6 +4,7 @@
     let dateFieldDropdown = document.getElementById('dateGroup');
     let searchButton = document.getElementById('searchBtn');
     let resetButton = document.getElementById('resetBtn');
+    let formNameDropdown = document.getElementById('formNameDropdown');
     //TODO: Add signalR hub for data transfer
 
     console.log('FormsSearch.js loaded');
@@ -36,6 +37,20 @@
     }
     GetDateFields();
 
+    function GetFormNames() {
+        fetch(`/search/GetFormNames?userId=${userId}`) // Include userId in the request
+            .then(response => response.json())
+            .then(data => {
+                const dropdown = document.getElementById('formNameDropdown');
+                data.forEach(name => {
+                    const option = new Option(name, name); // new Option(text, value)
+                    dropdown?.add(option);
+                });
+            })
+            .catch(error => console.error('Error fetching form names:', error));
+    }
+    GetFormNames();
+
     searchButton?.addEventListener('click', function (e) {
         e.preventDefault();
         // Gather all the input values
@@ -46,6 +61,7 @@
         let fieldName = fieldNameDropdown.options[fieldNameDropdown.selectedIndex].value;
         let minValue = document.querySelector('input[name="minValue"]').value;
         let maxValue = document.querySelector('input[name="maxValue"]').value;
+        let formName = formNameDropdown.options[formNameDropdown.selectedIndex].value;
         //TODO: we will need to determine if the serachTerm will be used for the formName or the formNotes
         let queryParams = new URLSearchParams({ userId, searchTerm });
 
@@ -55,7 +71,8 @@
         if (endDate) queryParams.append("endDate", endDate);
         if (fieldName) queryParams.append("fieldName", fieldName);
         if (minValue) queryParams.append("minValue", minValue);
-        if (maxValue) queryParams.append("maxValue", maxValue);  
+        if (maxValue) queryParams.append("maxValue", maxValue);
+        if (formName) queryParams.append("formName", formName);
 
         let searchUrl = `/search/SearchFormsAsync?${queryParams.toString()}`;
 
