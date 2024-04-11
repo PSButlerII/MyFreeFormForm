@@ -76,9 +76,27 @@ namespace MyFreeFormForm.Controllers
             return Ok(allDateFields);
         }
 
+        [HttpGet("GetFormNames")]
+        public async Task<IActionResult> GetFormNames(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("User ID is required.");
+            }
+
+            // Fetch form names only for forms owned by the given user.
+            var formNames = await _context.Forms
+                .Where(f => f.UserId == userId)
+                .Select(f => f.FormName)
+                .Distinct()
+                .ToListAsync();
+
+            return Ok(formNames);
+        }
+
         [HttpGet("SearchFormsAsync")]
         //TODO: Need to add the form name to the search criteria
-        public async Task<IActionResult> SearchFormsAsync(string userId, string? searchTerm, DateTime? startDate, DateTime? endDate, string? fieldName, string? minValue, string? maxValue, string? dateField)
+        public async Task<IActionResult> SearchFormsAsync(string userId, string? searchTerm, DateTime? startDate, DateTime? endDate, string? fieldName, string? minValue, string? maxValue, string? dateField, string? formName)
         {
             try
             {
@@ -87,6 +105,11 @@ namespace MyFreeFormForm.Controllers
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     criteria.Add(new SearchCriteria { FieldName = fieldName, FieldType = Helpers.FieldType.Text, FieldValue = searchTerm });
+                }
+
+                if (!string.IsNullOrEmpty(formName))
+                {
+                    criteria.Add(new SearchCriteria { FormName = formName, FieldType = Helpers.FieldType.None });
                 }
 
                 if (startDate.HasValue && endDate.HasValue)
