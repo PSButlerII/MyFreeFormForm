@@ -13,6 +13,8 @@ namespace MyFreeFormForm.Models
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public string? DateField { get; set; }
+        //TODO: I will also need to handle a form name, so I will add a property for that.
+
 
     }
 }

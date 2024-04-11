@@ -4,7 +4,7 @@
     let dateFieldDropdown = document.getElementById('dateGroup');
     let searchButton = document.getElementById('searchBtn');
     let resetButton = document.getElementById('resetBtn');
-
+    //TODO: Add signalR hub for data transfer
 
     console.log('FormsSearch.js loaded');
 
@@ -46,7 +46,7 @@
         let fieldName = fieldNameDropdown.options[fieldNameDropdown.selectedIndex].value;
         let minValue = document.querySelector('input[name="minValue"]').value;
         let maxValue = document.querySelector('input[name="maxValue"]').value;
-
+        //TODO: we will need to determine if the serachTerm will be used for the formName or the formNotes
         let queryParams = new URLSearchParams({ userId, searchTerm });
 
         // Construct the URL with query parameters. Only add parameters that have values.

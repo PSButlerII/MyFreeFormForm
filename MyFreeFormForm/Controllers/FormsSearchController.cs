@@ -41,11 +41,13 @@ namespace MyFreeFormForm.Controllers
 
             // Fetch field names only for forms owned by the given user
             // Since FormFields does not contain a circular reference to Form, we must join on FormId and UserId.
+            // TODO: May need to add the formname to the fieldnames query so that it is an option to search on.
             var fieldNames = await _context.FormFields
                 .Where(ff => _context.Forms.Any(f => f.FormId == ff.FormId && f.UserId == userId))
                 .Select(ff => ff.FieldName)
                 .Distinct()
                 .ToListAsync();
+
             return Ok(fieldNames);
         }
 
@@ -75,6 +77,7 @@ namespace MyFreeFormForm.Controllers
         }
 
         [HttpGet("SearchFormsAsync")]
+        //TODO: Need to add the form name to the search criteria
         public async Task<IActionResult> SearchFormsAsync(string userId, string? searchTerm, DateTime? startDate, DateTime? endDate, string? fieldName, string? minValue, string? maxValue, string? dateField)
         {
             try
