@@ -33,7 +33,7 @@ namespace MyFreeFormForm.Services
 
                 return null;
             }
-        }
+        }       
 
         public List<Form> GetForms()
         {
@@ -50,6 +50,63 @@ namespace MyFreeFormForm.Services
                 _logger.LogError(ex, "Error getting forms");
 
                 return new List<Form>();
+            }
+        }
+
+        public Task<List<string>> GetFieldNames(string userId)
+        {
+            try
+            {
+                return _context.FormFields
+                .Where(ff => _context.Forms.Any(f => f.FormId == ff.FormId && f.UserId == userId))
+                .Select(ff => ff.FieldName)
+                .Distinct()
+                .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting forms");
+
+                return null;
+            }
+        }
+
+        public Task<List<string>> GetDateFields(string userId)
+        {
+            try
+            {
+                return _context.FormFields
+                .Where(ff => _context.Forms.Any(f => f.FormId == ff.FormId && f.UserId == userId) && ff.FieldType == Helpers.FieldType.Date.ToString())
+                .Select(ff => ff.FieldName)
+                .Distinct()
+                .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting forms");
+
+                return null;
+            }
+        }
+
+        public Task<List<string>> GetFormNames(string userId)
+        {
+            try
+            {
+                return _context.Forms
+                .Where(f => f.UserId == userId)
+                .Select(f => f.FormName)
+                .Distinct()
+                .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting forms");
+
+                return null;
             }
         }
 
@@ -277,6 +334,99 @@ namespace MyFreeFormForm.Services
             });
             await _context.SaveChangesAsync();
 
+        }
+
+        // Section for Statistics
+        // Get form counts by user
+        public async Task<Dictionary<string, int>> GetFormCountsByUser(string userId)
+        {
+            return await _context.Forms
+                .Where(f => f.UserId == userId)
+                .GroupBy(f => f.UserId)
+                .Select(g => new { UserId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.UserId, g => g.Count);
+        }
+
+        // Get field usage statistics
+        public async Task<Dictionary<string, int>> GetFieldUsageStats(string userId)
+        {
+            //need to add userId
+            return await _context.FormFields
+                .Where(predicate => _context.Forms.Any(f => f.FormId == predicate.FormId && f.UserId == userId))
+                .GroupBy(ff => ff.FieldName)
+                .Select(g => new { FieldName = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.FieldName, g => g.Count);
+        }
+
+        // Get average fields per form
+        public async Task<double> GetAverageFieldsPerForm(string userId)
+        {
+            //need to add userId
+            return await _context.Forms
+                .Where(f => f.UserId == userId)
+                .Select(f => f.FormFields.Count)
+                .AverageAsync();
+        }
+
+        // Get form submissions over time
+        public async Task<List<KeyValuePair<DateTime, int>>> GetFormSubmissionsOverTime(TimeGrouping grouping, string userId)
+        {
+            //need to add userId
+            var query = _context.Forms.AsQueryable().Where(f=>f.UserId==userId);
+
+            switch (grouping)
+            {
+                case TimeGrouping.Daily:
+                    query = (IQueryable<Form>)query.GroupBy(f => f.CreatedDate.Date);
+                    break;
+                case TimeGrouping.Weekly:
+                    query = (IQueryable<Form>)query.GroupBy(f => EF.Functions.DateDiffDay(DateTime.MinValue, f.CreatedDate) / 7);
+                    break;
+                case TimeGrouping.Monthly:
+                    query = (IQueryable<Form>)query.GroupBy(f => new { f.CreatedDate.Year, f.CreatedDate.Month });
+                    break;
+            }
+
+            return await query
+                .Select(g => new KeyValuePair<DateTime, int>(g.CreatedDate, g.FormName.Count())) // may need to adjust this
+                .ToListAsync();
+        }
+
+        // Add an enum for time grouping if needed
+        public enum TimeGrouping { Daily, Weekly, Monthly }
+        // Count entries by date field for trend analysis
+        public async Task<List<KeyValuePair<DateTime, int>>> CountEntriesByDateField(string fieldName, DateTime startDate, DateTime endDate, string userId)
+        {
+            return await _context.FormFields
+                .Where(ff => ff.FieldName == fieldName && ff.FieldDateValue >= startDate && ff.FieldDateValue <= endDate && _context.Forms.Any(f => f.FormId == ff.FormId && f.UserId == userId))
+                .GroupBy(ff => ff.FieldDateValue.Value.Date)
+                .Select(g => new KeyValuePair<DateTime, int>(g.Key, g.Count()))
+                .ToListAsync();
+        }
+
+        // Count specific field values
+        public async Task<int> CountSpecificFieldValue(string fieldName, string userId)
+        {
+            return await _context.FormFields
+                .Where(ff => ff.FieldName == fieldName && _context.Forms.Any(f => f.FormId == ff.FormId && f.UserId == userId))
+                .CountAsync();
+        }
+
+        // Get entries that are expiring or have an upcoming date in a range
+        public async Task<List<Form>> GetExpiringEntries(string dateField, DateTime startDate, DateTime endDate, string userId)
+        {
+            return await _context.Forms
+                .Include(f => f.FormFields)
+                .Where(f => f.UserId == userId && f.FormFields.Any(ff => ff.FieldName == dateField && ff.FieldDateValue >= startDate && ff.FieldDateValue <= endDate))
+                .ToListAsync();
+        }
+
+        public async Task<List<Form>> CountFieldValueOccurrences(string fieldName, DateTime? startDate, DateTime? endDate, string userId)
+        {
+            return await _context.Forms
+                .Include(f => f.FormFields)
+                .Where(f => f.UserId == userId && f.FormFields.Any(ff => ff.FieldName == fieldName && ff.FieldDateValue >= startDate && ff.FieldDateValue <= endDate))
+                .ToListAsync();
         }
     }
 }

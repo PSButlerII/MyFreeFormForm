@@ -59,6 +59,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddHostedService<QueueProcessor>();
+builder.Services.AddScoped<DataService>();
 
 builder.Services.AddScoped<IFormProcessorService, FormProcessorService>();
 
@@ -86,7 +87,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<SearchService>();
 
 
-
+builder.Services.AddSignalR(hubOptions =>
+{
+    hubOptions.EnableDetailedErrors = true; // Enable detailed errors
+});
 // In Configure, before UseRouting or UseEndpoints
 AddAuthorizationPolicies(builder.Services);
 AddScoped(builder.Services);
@@ -111,6 +115,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// use top level route registrations instead of UseEndpoints to add endpoint for SignalR /dataHub
+
 app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthorization();
@@ -123,6 +130,9 @@ app.MapHealthChecks("/health");
 
 
 app.MapRazorPages();
+//app.MapHub<DataHub>("/dataHub");
+app.MapHub<DataHub>("/dataHub").RequireCors("AllowSpecificOrigin");
+
 
 app.Run();
 

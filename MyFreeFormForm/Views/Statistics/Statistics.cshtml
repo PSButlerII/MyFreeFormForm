@@ -1,0 +1,41 @@
+﻿@page
+@using MyFreeFormForm.Data
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<MyIdentityUsers> SignInManager
+@{
+    ViewBag.Title = "Form Statistics";
+}
+
+<h2>Form Statistics</h2>
+<input type="hidden" id="loggedInUser" value="@SignInManager.UserManager.GetUserId(User)" />
+<!-- Control to select different data analyses -->
+<select id="dataSelection">
+    <option value="">Select Statistics type</option>
+    <option value="trendAnalysis">Trend Analysis</option>
+    <option value="specificCount">Specific Count</option>
+    <option value="GetExpiringEntries">Get Expiring Entries</option>
+    <option value="CountSpecificFieldValue">Count Specific Field</option>
+    <option value="CountEntriesByDateField">Entries By Date</option>
+    <option value="FormCounts">Form count</option>
+    <option value="FieldUsage">Field count</option>
+</select>
+<input type="date" id="startDate">
+<input type="date" id="endDate">
+<div class="input-group mb-2">
+    <label for="fieldNameDropdown">Field Name</label>
+    <select id="fieldNameDropdown" class="form-control" name="fieldName">
+        <option value="">Select Field Name</option>
+        <!-- Options will be populated dynamically -->
+    </select>
+</div>
+<div class="input-group mb-2">
+    <label for="chartType">Chart Type</label>
+    <select id="chartType" class="form-control" name="chartTypes">
+        <!-- Options will be populated dynamically -->
+    </select>
+    <button class="btn btn-outline-secondary" id="updateChartType">Update Chart</button>
+</div>
+<button id="requestData">Load Data</button>
+
+<!-- Canvas for the chart -->
+<canvas id="myChart" width="800" height="400"></canvas>

@@ -15,6 +15,8 @@
 <body>
     
     <input type="hidden" id="loggedInUser" value="@SignInManager.UserManager.GetUserId(User)" />
+
+
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -62,6 +64,9 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="FormsSearch" asp-action="Index">Search Forms</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Statistics" asp-action="Index">Statistics</a>
+                            </li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
@@ -82,10 +87,12 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="~/js/DynamicFormJS.js" asp-append-version="true"></script>
-    <script src="~/js/FormsSearch.js" asp-append-version="true"></script>
+    <script src="~/js/DynamicFormJS.js" asp-append-version="true" defer></script>
+    <script src="~/js/FormsSearch.js" asp-append-version="true" defer></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/JSLogger.js" asp-append-version="true"></script>
+    <script src="~/js/StatsDistro/bundle.js" defer></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
