@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MyFreeFormForm.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.FileIO;
+using System.Security.Claims;
 
 namespace MyFreeFormForm.Controllers
 {
@@ -18,16 +19,24 @@ namespace MyFreeFormForm.Controllers
         private readonly ILogger<FormsSearchController> _logger;
         private readonly SearchService _searchService;
         private readonly ApplicationDbContext _context;
+        private readonly FormsDbc _formDbc;
 
-        public FormsSearchController(ILogger<FormsSearchController> logger, SearchService searchService, ApplicationDbContext context)
+        public FormsSearchController(ILogger<FormsSearchController> logger, SearchService searchService, ApplicationDbContext context, FormsDbc formDbc)
         {
             _logger = logger;
             _searchService = searchService;
             _context = context;
+            _formDbc = formDbc;
         }
 
         public IActionResult Index()
         {
+            var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // get logged-in userId
+            if (string.IsNullOrEmpty(loggedInUserId))
+            {
+                return Redirect("/Identity/Account/Login");
+            }
             return View("SearchResults");
         }
 
@@ -42,11 +51,7 @@ namespace MyFreeFormForm.Controllers
             // Fetch field names only for forms owned by the given user
             // Since FormFields does not contain a circular reference to Form, we must join on FormId and UserId.
             // TODO: May need to add the formname to the fieldnames query so that it is an option to search on.
-            var fieldNames = await _context.FormFields
-                .Where(ff => _context.Forms.Any(f => f.FormId == ff.FormId && f.UserId == userId))
-                .Select(ff => ff.FieldName)
-                .Distinct()
-                .ToListAsync();
+            var fieldNames = await _formDbc.GetFieldNames(userId);
 
             return Ok(fieldNames);
         }
@@ -62,11 +67,7 @@ namespace MyFreeFormForm.Controllers
             List<string> formDateFields = new List<string> { "CreatedDate", "UpdatedDate" };
 
             // Get distinct date field names from the FormFields table
-            var formFieldDateNames = await _context.FormFields
-                .Where(ff => _context.Forms.Any(f => f.FormId == ff.FormId && f.UserId == userId) && ff.FieldType == Helpers.FieldType.Date.ToString())
-                .Select(ff => ff.FieldName)
-                .Distinct()
-                .ToListAsync();
+            var formFieldDateNames = await _formDbc.GetDateFields(userId);
 
             // Combine the lists, eliminating any duplicates that may arise
             var allDateFields = formDateFields.Concat(formFieldDateNames)
@@ -85,17 +86,12 @@ namespace MyFreeFormForm.Controllers
             }
 
             // Fetch form names only for forms owned by the given user.
-            var formNames = await _context.Forms
-                .Where(f => f.UserId == userId)
-                .Select(f => f.FormName)
-                .Distinct()
-                .ToListAsync();
+            var formNames = await _formDbc.GetFormNames(userId);
 
             return Ok(formNames);
         }
 
         [HttpGet("SearchFormsAsync")]
-        //TODO: Need to add the form name to the search criteria
         public async Task<IActionResult> SearchFormsAsync(string userId, string? searchTerm, DateTime? startDate, DateTime? endDate, string? fieldName, string? minValue, string? maxValue, string? dateField, string? formName)
         {
             try

@@ -11,6 +11,10 @@ using Serilog.Events;
 using System.Text.Json.Serialization;
 using MyFreeFormForm.Models;
 using Nest;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Options;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,10 +35,32 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<MyIdentityUsers>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddScoped<DataProtectorTokenProvider<MyIdentityUsers>, CustomEmailConfirmationTokenProvider<MyIdentityUsers>>();
 
+// Add services to the container.
+builder.Services.AddScoped<CustomEmailConfirmationTokenProvider<MyIdentityUsers>>();
+builder.Services.Configure<EmailConfirmationTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromMinutes(15); // Adjust as needed
+});
+
+builder.Services.AddDefaultIdentity<MyIdentityUsers>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+    options.Tokens.ProviderMap.Add("EmailConfirmation", new TokenProviderDescriptor(typeof(CustomEmailConfirmationTokenProvider<MyIdentityUsers>)));
+    options.Tokens.EmailConfirmationTokenProvider = "EmailConfirmation";
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
+
+
+builder.Services.AddScoped<DataProtectorTokenProvider<MyIdentityUsers>, CustomEmailConfirmationTokenProvider<MyIdentityUsers>>();
+builder.Services.AddScoped<CustomEmailConfirmationTokenProvider<MyIdentityUsers>>();
+
+builder.Services.Configure<EmailSenderOptions>(builder.Configuration.GetSection("EmailSender"));
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.Configure<EmailSender>(builder.Configuration);
 
 builder.Services.AddControllersWithViews().AddSessionStateTempDataProvider(); 
 builder.Services.AddRazorPages();
@@ -59,6 +85,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddHostedService<QueueProcessor>();
+builder.Services.AddScoped<DataService>();
 
 builder.Services.AddScoped<IFormProcessorService, FormProcessorService>();
 
@@ -86,7 +113,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<SearchService>();
 
 
-
+builder.Services.AddSignalR(hubOptions =>
+{
+    hubOptions.EnableDetailedErrors = true; // Enable detailed errors
+});
 // In Configure, before UseRouting or UseEndpoints
 AddAuthorizationPolicies(builder.Services);
 AddScoped(builder.Services);
@@ -111,6 +141,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// use top level route registrations instead of UseEndpoints to add endpoint for SignalR /dataHub
+
 app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthorization();
@@ -123,6 +156,9 @@ app.MapHealthChecks("/health");
 
 
 app.MapRazorPages();
+//app.MapHub<DataHub>("/dataHub");
+app.MapHub<DataHub>("/dataHub").RequireCors("AllowSpecificOrigin");
+
 
 app.Run();
 
@@ -144,4 +180,27 @@ void AddScoped(IServiceCollection services)
     services.AddScoped<IUserRepository, UserRepository>();
     services.AddScoped<IRoleRepository, RoleRepository>();
     services.AddScoped<IUnitOfWork, UnitOfWork>();
+}
+
+
+public class EmailConfirmationTokenProviderOptions : DataProtectionTokenProviderOptions
+{
+    public EmailConfirmationTokenProviderOptions()
+    {
+        Name = "EmailDataProtectorTokenProvider";
+        TokenLifespan = TimeSpan.FromHours(4);
+    }
+}
+
+public class CustomEmailConfirmationTokenProvider<TUser>
+                              : DataProtectorTokenProvider<TUser> where TUser : class
+{
+    public CustomEmailConfirmationTokenProvider(
+        IDataProtectionProvider dataProtectionProvider,
+        IOptions<EmailConfirmationTokenProviderOptions> options,
+        ILogger<DataProtectorTokenProvider<TUser>> logger)
+                                       : base(dataProtectionProvider, options, logger)
+    {
+
+    }
 }

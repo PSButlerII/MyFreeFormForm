@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using MyFreeFormForm.Models;
 using System.Collections.Generic; // Include this for List<>
 
-namespace MyFreeFormForm.Views.Search
+namespace MyFreeFormForm.Views.Statistics
 {
     public class StatisticsModel : PageModel
     {

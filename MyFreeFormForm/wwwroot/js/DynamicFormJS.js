@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     //document.addEventListener('click', AddFormNotes(form.FormId,form.Formnote));
+
     function addNotesBasedOnVisibility() {
         // Check if the carousel is currently visible
         const carousel = document.getElementById('dataCarousel');
