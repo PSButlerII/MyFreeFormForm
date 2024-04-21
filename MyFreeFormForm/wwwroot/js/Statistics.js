@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
         connection.on("UpdateExpiringEntries", function (data) {
             console.log("Updating chart with expiring entries:", data);
             currentData = data;
-            redrawChart(currentData); 
+            redrawChart(currentData);
         });
 
         try {
@@ -71,20 +71,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const endDate = document.getElementById('endDate').value;
 
         if (connection) {
-            console.log("Requesting data...", analysisType, fieldName, startDate, endDate,connection);
+            console.log("Requesting data...", analysisType, fieldName, startDate, endDate, connection);
             connection.invoke("RequestData", analysisType, fieldName, startDate, endDate, userId)
-            .then(() => {
-                console.log("Request data sent successfully");
-                // update the Chart.js UI
-            })
-            .catch(err => {
-                console.error("Error invoking 'RequestData':", err);
-                if (err instanceof Error) {
-                    alert(`Failed to load data: ${err.message}`);
-                } else {
-                    alert(`Failed to load data: ${err}`);
-                }
-            });
+                .then(() => {
+                    console.log("Request data sent successfully");
+                    // update the Chart.js UI
+                })
+                .catch(err => {
+                    console.error("Error invoking 'RequestData':", err);
+                    if (err instanceof Error) {
+                        alert(`Failed to load data: ${err.message}`);
+                    } else {
+                        alert(`Failed to load data: ${err}`);
+                    }
+                });
         }
     });
 
@@ -95,50 +95,34 @@ document.addEventListener('DOMContentLoaded', function () {
         if (chart) {
             chart.destroy(); // Destroy the existing chart instance
         }
-        let myDatasets;
 
-        // Check if 'count' data is present
-        if (data.data[0] && data.counts != undefined) {
-            myDatasets = [{
-                label: data.title,
-                data: data.data.map(item => ({
-                    x: new Date(item.date), // Ensure date is a Date object
-                    y: item.count
-                })),
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-                tension: 0.1 // Applies for line charts
-            }];
-        }
-        else {
-            // Default dataset setup if no 'count' data
-            myDatasets = [{
-                label: data.title,
-                data: data.data,
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                ],
-                borderWidth: 1, // Adjusted for visibility in all chart types
-                tension: 0.1
-            }]
-        }
+        let myDatasets = [{
+            label: data.title,
+            data: data.data,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(255, 159, 64, 0.2)',
+                'rgba(255, 205, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(201, 203, 207, 0.2)'
+            ],
+            borderColor: [
+                'rgb(255, 99, 132)',
+                'rgb(255, 159, 64)',
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)',
+                'rgb(54, 162, 235)',
+                'rgb(153, 102, 255)',
+                'rgb(201, 203, 207)'
+            ],
+            borderWidth: 1, // Adjusted for visibility in all chart types
+            tension: 0.1
+        }]
+
         let AxisType = GetdataConfiguration(data);
+
         let config = {
             type: chartType, // Dynamic chart type
             data: {
@@ -146,7 +130,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: myDatasets
             },           
             options: {
-                scales: {}
+                scales: {},
+                plugins: {
+                    tooltips: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function (tooltipItem, chart) {
+                                const dataset = chart.datasets[tooltipItem.datasetIndex];
+                                const value = dataset.data[tooltipItem.index];
+                                const detail = data.FieldDetails[tooltipItem.index];
+                                return `${dataset.label}: ${value} (${detail})`;
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                
             }
         };
 
@@ -159,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Duration (Days)'
+                            text: 'Count (Days)'
                         },
                         type: AxisType, // This is important to show the data correctly'
                         time: {
@@ -174,6 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
             case 'pie':
             case 'doughnut':
             case 'polarArea':
+                delete config.options.scales;
                 config.data = {
                     datasets: [{
                         data: data.data,
@@ -216,7 +220,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
                 break;
         }
-
         // Create a new chart with dynamic configuration
         chart = new Chart(ctx, config);
     }

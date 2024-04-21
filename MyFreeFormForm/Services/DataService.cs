@@ -65,15 +65,50 @@ namespace MyFreeFormForm.Services
         }
         // New method to get entries that are expiring or have an upcoming date
         /* THIS WORKS.*/
+        /*        public async Task GetExpiringEntries(string dateField, DateTime startDate, DateTime endDate, string userId)
+                {
+                    var expiringForms = await _formsDbc.GetExpiringEntries(dateField, startDate, endDate,userId);
+
+
+                    // var monthlyData = expiringForms.Select(f => new { Month = f.FormFields.FirstOrDefault(ff => ff.FieldName == dateField).FieldDateValue.Value.ToString("MMM yyyy"), Count = 1 }).GroupBy(f => f.Month).Select(g => new { Month = g.Key, Count = g.Count() }).ToList();
+                    // If I want to add the companyName from the formfields, I can do this:
+                    var monthlyData = expiringForms.Select(f => new { Month = f.FormFields.FirstOrDefault(ff => ff.FieldName == dateField).FieldDateValue.Value.ToString("MMM yyyy"), Company = f.FormFields.FirstOrDefault(ff => ff.FieldName == "companyName").FieldValue, Count = 1 }).GroupBy(f => new { f.Month, f.Company }).Select(g => new { Month = g.Key.Month, Company = g.Key.Company, Count = g.Count() }).ToList();
+
+
+                    var labels = monthlyData.Select(m => $"{m.Month} - {m.Company}").ToList();
+                    //var labels = monthlyData.Select(m => m.Month).ToList();
+                    var data = monthlyData.Select(m => m.Count).ToList();
+                    var title = $"Expiring forms by month from {startDate.ToString("MMM yyyy")} to {endDate.ToString("MMM yyyy")}";
+
+                    await _hubContext.Clients.All.SendAsync("UpdateExpiringEntries", new { Labels = labels, Data = data, Title = title });
+                }*/
+
         public async Task GetExpiringEntries(string dateField, DateTime startDate, DateTime endDate, string userId)
         {
-            var expiringForms = await _formsDbc.GetExpiringEntries(dateField, startDate, endDate,userId);
+            var expiringForms = await _formsDbc.GetExpiringEntries(dateField, startDate, endDate, userId);
 
-            var labels = expiringForms.Select(f => $"{f.CreatedDate.ToShortDateString()} - {f.FormName}").ToList();
-            var data = expiringForms.Select(f => f.FormFields.FirstOrDefault(ff => ff.FieldName == dateField).FieldDateValue).ToList();
-            var title = $"Expiring forms from {startDate.ToShortDateString()} to {endDate.ToShortDateString()}";
+            var monthlyData = expiringForms.Select(f => new
+            {
+                Month = f.FormFields.FirstOrDefault(ff => ff.FieldName == dateField && ff.FieldDateValue.HasValue)?.FieldDateValue.Value.ToString("MMM yyyy"),
+                Fields = String.Join(", ", f.FormFields.Select(ff => $"{ff.FieldName}: {ff.FieldValue ?? "N/A"}")),
+                Count = 1
+            })
+            .Where(x => x.Month != null)
+            .GroupBy(f => f.Month)
+            .Select(g => new
+            {
+                Month = g.Key,
+                FieldsDetails = g.Select(x => x.Fields).ToList(),
+                Count = g.Count()
+            })
+            .ToList();
 
-            await _hubContext.Clients.All.SendAsync("UpdateExpiringEntries", new { Labels = labels, Data = data, Title = title, StartDate = startDate, EndDate = endDate });
+            var labels = monthlyData.Select(m => m.Month).ToList();
+            var data = monthlyData.Select(m => m.Count).ToList();
+            var fieldDetails = monthlyData.SelectMany(m => m.FieldsDetails).Distinct().ToList();
+            var title = $"Expiring forms by month from {startDate:MMM yyyy} to {endDate:MMM yyyy}";
+
+            await _hubContext.Clients.All.SendAsync("UpdateExpiringEntries", new { Labels = labels, Data = data, FieldDetails = fieldDetails, Title = title });
         }
 
         public async Task UpdateData()

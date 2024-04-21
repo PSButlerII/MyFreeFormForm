@@ -34,7 +34,8 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-
+                        @if (User.IsInRole("Administrator"))
+                        {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Role Access Demo
@@ -51,13 +52,14 @@
                                 </li>
                             </ul>
                         </li>
+                        }
                         <ul class="navbar-nav flex-grow-1">
                         @if (SignInManager.IsSignedIn(User))
                         {
-                            <li class="nav-item">
+               @*              <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Forms" asp-action="StaticForm">Static Forms</a>
-                            </li>
-                        }
+                            </li> *@
+                        
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Forms" asp-action="CreateDynamicForm">Dynamic Forms</a>
                             </li>
@@ -67,6 +69,7 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Statistics" asp-action="Index">Statistics</a>
                             </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

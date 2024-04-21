@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using MyFreeFormForm.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.FileIO;
+using System.Security.Claims;
 
 namespace MyFreeFormForm.Controllers
 {
@@ -30,6 +31,12 @@ namespace MyFreeFormForm.Controllers
 
         public IActionResult Index()
         {
+            var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // get logged-in userId
+            if (string.IsNullOrEmpty(loggedInUserId))
+            {
+                return Redirect("/Identity/Account/Login");
+            }
             return View("SearchResults");
         }
 

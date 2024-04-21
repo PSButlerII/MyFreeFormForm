@@ -60,7 +60,7 @@
             },
             "Microsoft.ApplicationInsights.AspNetCore": {
               "target": "Package",
-              "version": "[2.21.0, )"
+              "version": "[2.22.0, )"
             },
             "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
               "target": "Package",
@@ -95,6 +95,10 @@
             "NEST": {
               "target": "Package",
               "version": "[7.17.4, )"
+            },
+            "SendGrid": {
+              "target": "Package",
+              "version": "[9.29.3, )"
             },
             "Serilog.AspNetCore": {
               "target": "Package",
