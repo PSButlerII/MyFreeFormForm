@@ -1,0 +1,53 @@
+﻿@model MyFreeFormForm.Views.Forms.ManageModel
+
+<h2>Manage Forms</h2>
+
+@if (Model.GroupedForms.Any())
+{
+    foreach (var group in Model.GroupedForms)
+    {
+        <h3>@group.Key</h3> <!-- Form Name -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Created Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var form in group.Value)
+                {
+                    <tr>
+                        <td>@form.Description</td>
+                        <td>@form.CreatedDate.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteForm('@form.FormId')">Delete Form</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <button class="btn btn-danger" onclick="deleteAllForms('@group.Key')">Delete All Forms Under '@group.Key'</button>
+    }
+}
+else
+{
+    <p>No Forms Uploaded.</p>
+}
+
+@section Scripts {
+    <script>
+        function deleteForm(formId) {
+            if (confirm("Are you sure you want to delete this form?")) {
+                // Implement the delete logic, typically calling an API
+            }
+        }
+
+        function deleteAllForms(formName) {
+            if (confirm("Are you sure you want to delete all forms under " + formName + "?")) {
+                // Implement the delete all logic, typically calling an API
+            }
+        }
+    </script>
+}

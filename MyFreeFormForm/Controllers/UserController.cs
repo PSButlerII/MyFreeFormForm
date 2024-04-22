@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using MyFreeFormForm.Core.Repositories;
 using MyFreeFormForm.Data;
 using MyFreeFormForm.Core.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MyFreeFormForm.Controllers
 {
+    [Route("user")]
+    [Authorize(Roles="Administrator")]
     public class UserController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -24,6 +27,7 @@ namespace MyFreeFormForm.Controllers
             return View(users);
         }
 
+        [HttpGet("Edit")]
         public async Task<IActionResult> Edit(string id)
         {
             var user = _unitOfWork.User.GetUser(id);
@@ -104,6 +108,18 @@ namespace MyFreeFormForm.Controllers
             _unitOfWork.User.UpdateUser(user);
 
             return RedirectToAction("Edit", new { id = user.Id });
+        }
+
+        [HttpDelete("DeleteUsers/{id}")]
+        public IActionResult Delete(string id)
+        {
+            var user = _unitOfWork.User.GetUser(id);
+            if (user == null)
+            {
+                return NotFound();
+            }            
+            _unitOfWork.User.DeleteUser(user);
+            return RedirectToAction("Index");
         }
     }
 }

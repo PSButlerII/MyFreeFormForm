@@ -10,5 +10,6 @@ namespace MyFreeFormForm.Core.Repositories
         MyIdentityUsers GetUser(string id);
 
         MyIdentityUsers UpdateUser(MyIdentityUsers user);
+        MyIdentityUsers DeleteUser(MyIdentityUsers user);
     }
 }

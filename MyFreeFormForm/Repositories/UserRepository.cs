@@ -30,5 +30,13 @@ namespace MyFreeFormForm.Repositories
 
             return user;
         }
+
+        public MyIdentityUsers DeleteUser(MyIdentityUsers user)
+        {
+            _context.Remove(user);
+            _context.SaveChanges();
+
+            return user;
+        }
     }
 }

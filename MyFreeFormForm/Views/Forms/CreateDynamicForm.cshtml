@@ -7,7 +7,8 @@
     <div class="row">
         <!-- Sidebar for Uploaded Documents -->
         <div id="documentsBox" class="col-md-3">
-            <div class="p-3 border bg-light">
+            <div class="p-3 border bg-light">       
+                <a href="@Url.Action("ManageForms", "Forms", new { userId = Model.UserId })">Manage</a>
                 <h5>Uploaded Documents</h5>
                 <div id="uploadedDocumentsPanel">
                     @Html.Partial("_UploadedDocuments")
@@ -45,6 +46,7 @@
                     Upload Excel/CSV File
                 </button>
                 <button type="button" id="addFieldBtn" class="btn btn-primary">Add Field</button>
+                @* //TODO: Notify the user that the form has been uploaded, or that some action is taking place. *@
                 <button asp-action="SubmitMultipleDynamicForms" disabled="true" asp-route-action="multipleDynamic" method="post" id="submitAllData" type="submit" class="btn btn-primary">Submit All</button>
                 <button type="button" id="createTemplate" disabled="true" class="btn btn-primary">Create template</button>
                 <button id="addNoteBtn" type="button" class="btn btn-primary">Add Note</button>

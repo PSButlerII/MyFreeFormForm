@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentData = null;
 
     function initializeChart() {
-        const ctx = document.getElementById('myChart').getContext('2d');
+        const ctx = document.getElementById('myChart')?.getContext('2d');
         chart = new Chart(ctx, {
             type: 'bar', // Default chart type
             data: {
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    document.getElementById('requestData').addEventListener('click', function (e) {
+    document.getElementById('requestData')?.addEventListener('click', function (e) {
         e.preventDefault();
         const analysisType = document.getElementById('dataSelection').value;
         // Example for date fields; you'd add UI elements to capture these dates
@@ -252,10 +252,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const option = document.createElement('option');
         option.value = type;
         option.text = type;
-        chartTypeDropdown.appendChild(option);
+        chartTypeDropdown?.appendChild(option);
     });
 
-    document.getElementById('updateChartType').addEventListener('click', function (e) {
+    document.getElementById('updateChartType')?.addEventListener('click', function (e) {
         
             redrawChart(currentData);
     });

@@ -5,6 +5,7 @@ using MyFreeFormForm.Data;
 using MyFreeFormForm.Helpers;
 using MyFreeFormForm.Models;
 using MyFreeFormForm.Services;
+using MyFreeFormForm.Views.Forms;
 using Newtonsoft.Json;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.IO;
@@ -21,6 +22,7 @@ namespace MyFreeFormForm.Controllers
         private readonly ApplicationDbContext _context;
         public FieldOptions fieldOptions;
         private readonly ILogger<FormsController> _logger;
+        // TODO: Consider using the service instead of the DbContext directly.
         private FormsDbc _formsDbc;
         private static readonly Queue<DynamicFormModel> FormSubmissionQueue = new Queue<DynamicFormModel>();
 
@@ -61,38 +63,6 @@ namespace MyFreeFormForm.Controllers
 
             return View("StaticForm", model);
         }        
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("dynamic")]
-        public IActionResult CreateDynamicForm()
-        {
-            var model = new DynamicFormModel();
-            var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            // get logged-in userId
-            if (string.IsNullOrEmpty(loggedInUserId))
-            {
-                return Redirect("/Identity/Account/Login");
-            }
-            else
-            {
-                ViewData["UserId"] = loggedInUserId;
-                model.UserId = loggedInUserId;
-            }
-
-            //TODO: Instead of using ViewBag, consider using a ViewModel.  This will make it easier to test and maintain the code.
-            var formInstance = _context.Forms
-                .AsEnumerable() // AsEnumerable or ToList, depending on your context's capabilities
-                .Where(f => f.UserId == loggedInUserId)
-                .GroupBy(f => f.FormName)
-                .ToDictionary(g => g.Key, g => g.Select(f => f.FormId).ToList());
-
-            ViewBag.FormInstance = formInstance;
-
-            return View(model);
-        }
 
         /// <summary>
         /// 
@@ -186,7 +156,7 @@ namespace MyFreeFormForm.Controllers
                         {
                             dynamicFormModel.FormNotes.Add(new FormNotes
                             {
-                                Notes = new List<string> { noteValue }, // Assuming each FormNotes object contains a list of notes
+                                Note = new List<string> { noteValue }, // Assuming each FormNotes object contains a list of notes
                                 CreatedDate = DateTime.Now,
                                 UpdatedDate = DateTime.Now
                             });
@@ -206,6 +176,39 @@ namespace MyFreeFormForm.Controllers
             }
             return Json(new { success = false, message = "Form submission failed" });
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("dynamic")]
+        public IActionResult CreateDynamicForm()
+        {
+            var model = new DynamicFormModel();
+            var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // get logged-in userId
+            if (string.IsNullOrEmpty(loggedInUserId))
+            {
+                return Redirect("/Identity/Account/Login");
+            }
+            else
+            {
+                ViewData["UserId"] = loggedInUserId;
+                model.UserId = loggedInUserId;
+            }
+
+            //TODO: Instead of using ViewBag, consider using a ViewModel.  This will make it easier to test and maintain the code.
+            var formInstance = _context.Forms
+                .AsEnumerable() // AsEnumerable or ToList, depending on your context's capabilities
+                .Where(f => f.UserId == loggedInUserId)
+                .GroupBy(f => f.FormName)
+                .ToDictionary(g => g.Key, g => g.Select(f => f.FormId).ToList());
+
+            ViewBag.FormInstance = formInstance;
+
+            return View(model);
+        }
+
 
         /// <summary>
         ///  
@@ -357,7 +360,7 @@ namespace MyFreeFormForm.Controllers
                         formFields.Add(fieldData);
                     }
                     var formNotes = notes.Where(n => n.FormId == form.FormId)
-                                 .Select(n => n.Notes) // Assuming NoteText is the note content
+                                 .Select(n => n.Note) // Assuming NoteText is the note content
                                  .ToList();
                     // Will need to eventual add an entry for files
                     selectedData.Add(new Dictionary<string, string>
@@ -414,7 +417,7 @@ namespace MyFreeFormForm.Controllers
                 {
                     foreach (var note in formNotes)
                     {
-                        formNotesList.Add(note.Notes.ToString());
+                        formNotesList.Add(note.Note.ToString());
                     }
                 }
                 return PartialView("_formNotes", formNotes);
@@ -447,7 +450,7 @@ namespace MyFreeFormForm.Controllers
 
                 form.FormNotes.Add(new FormNotes
                 {
-                    Notes = new List<string> { note },
+                    Note = new List<string> { note },
                     CreatedDate = DateTime.Now,
                     UpdatedDate = DateTime.Now
                 });
@@ -462,6 +465,62 @@ namespace MyFreeFormForm.Controllers
                 return Json(new { success = false, message = "An error occurred while adding the note" });
             }
         }
+
+        [HttpGet("ManageForms/{userId}")]
+        public async Task<IActionResult> ManageForms(string userId)
+        {
+            var forms = await _context.Forms
+                .Where(f => f.UserId == userId)
+                .ToListAsync();
+            var GroupedForms = forms.GroupBy(f => f.FormName)
+                            .ToDictionary(g => g.Key, g => g.ToList());
+
+            var viewModel = new ManageModel
+            {
+                GroupedForms = GroupedForms
+            };
+
+            return View(viewModel);
+        }
+
+        /// <summary>
+        /// Deletes a static form based on its identifier.
+        /// </summary>
+        /// <param name="id">The identifier of the form to delete.</param>
+        /// <returns></returns>
+        [HttpPost("delete-static")]
+        public IActionResult DeleteStaticForm(int id)
+        {
+            if (_formsDb.DeleteStaticForm(id)) // Assuming _formsDb.DeleteStaticForm handles the deletion logic
+            {
+                return RedirectToAction("DeletionSuccessPage"); // Redirect to a success notification page
+            }
+
+            return View("ErrorPage"); // Redirect to an error page if deletion fails
+        }
+
+        /// <summary>
+        /// Deletes a dynamic form based on its identifier.
+        /// </summary>
+        /// <param name="id">The identifier of the form to delete.</param>
+        /// <returns></returns>
+        [HttpPost("delete-dynamic")]
+        public async Task<IActionResult> DeleteDynamicForm(int id)
+        {
+            //TODO: Implement the logic to delete a dynamic form
+            var form = await _formsDbc.GetFormByIdAsync(id); // Fetch the form data using the id
+            if (form != null)
+            {
+                var deleteResult = await _formsDbc.DeleteFormAsync(id); // Assuming DeleteFormAsync handles the deletion logic
+                if (deleteResult)
+                {
+                    return Json(new { success = true, message = "Form successfully deleted" });
+                }
+            }
+
+            return Json(new { success = false, message = "Form deletion failed" });
+        }
+
 
     }
 }

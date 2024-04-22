@@ -108,6 +108,8 @@
                 <hr class="my-4">
 
                 <button class="w-100 btn btn-primary btn-lg" type="submit">Save</button>
+                // Add a delete button. make sure to send the user id to the javascript event listener using the dataparameter.  the user id is in the route.
+                <button class="w-100 btn btn-danger btn-lg" type="button" data-userid="@Model.User.Id" id="deleteUser">Delete</button>
             }
         </div>
     </div>
