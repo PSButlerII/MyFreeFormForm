@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.SqlServer.Server;
 using MyFreeFormForm.Data;
 using MyFreeFormForm.Models;
 using Newtonsoft.Json;
@@ -35,6 +36,24 @@ namespace MyFreeFormForm.Services
             }
         }       
 
+        public async Task<Form?> GetFormByIdAsync(int formId)
+        {
+            try
+            {
+                return await _context.Forms
+                    .Include(f => f.FormFields)
+                    .Include(f => f.FormNotes)
+                    .FirstOrDefaultAsync(f => f.FormId == formId);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting form {formId}", formId);
+
+                return null;
+            }
+        }
+
         public List<Form> GetForms()
         {
             try
@@ -50,6 +69,42 @@ namespace MyFreeFormForm.Services
                 _logger.LogError(ex, "Error getting forms");
 
                 return new List<Form>();
+            }
+        }
+
+        public List<Form> GetFormsByUser(string userId)
+        {
+            try
+            {
+                return _context.Forms
+                    .Include(f => f.FormFields)
+                    .Include(f => f.FormNotes)
+                    .Where(f => f.UserId == userId)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting forms");
+
+                return new List<Form>();
+            }
+        }
+
+        public async Task<List<FormNotes>> GetNotes(int formid)
+        {
+            try
+            {
+                return await _context.FormNotes
+                    .Where(n => n.FormId == formid)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting notes for form {formid}", formid);
+
+                return new List<FormNotes>();
             }
         }
 
@@ -220,6 +275,62 @@ namespace MyFreeFormForm.Services
             }
         }
 
+        public bool DeleteStaticForm(int id)
+        {
+            try
+            {
+                var form = _context.Forms
+                    .Include(f => f.FormFields)
+                    .Include(f => f.FormNotes)
+                    .FirstOrDefault(f => f.FormId == id);
+
+                if (form == null)
+                {
+                    return false;
+                }
+
+                _context.Forms.Remove(form);
+                _context.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error deleting form {formId}", id);
+
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteFormAsync(int id)
+        {
+            try
+            {
+                var form = await _context.Forms
+                    .Include(f => f.FormFields)
+                    .Include(f => f.FormNotes)
+                    .FirstOrDefaultAsync(f => f.FormId == id);
+
+                if (form == null)
+                {
+                    return false;
+                }
+
+                _context.Forms.Remove(form);
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error deleting form {formId}", id);
+
+                return false;
+            }
+        }
+
         public bool AddFormNotes(int formId, List<string> notes)
         {
             try
@@ -335,6 +446,9 @@ namespace MyFreeFormForm.Services
             await _context.SaveChangesAsync();
 
         }
+
+
+
 
         // Section for Statistics
         // Get form counts by user

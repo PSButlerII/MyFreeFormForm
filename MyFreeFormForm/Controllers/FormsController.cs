@@ -408,9 +408,7 @@ namespace MyFreeFormForm.Controllers
             _logger.LogInformation("Fetching notes for form ID: {FormId}", formId);
             try
             {
-                var formNotes = await _context.FormNotes
-                                               .Where(fn => fn.FormId == formId)
-                                               .ToListAsync();
+                var formNotes = await _formsDbc.GetNotes(formId);
                 var formNotesList = new List<string>();
                 //Notes is a string list.  Check is the formNotes.Notes is empty
                 if (formNotes != null)
@@ -434,9 +432,7 @@ namespace MyFreeFormForm.Controllers
         {// TODO: Implement logic that will allow you to add notes to a form without submitting the form
             try
             {
-                var form = await _context.Forms
-                    .Include(f => f.FormNotes)
-                    .FirstOrDefaultAsync(f => f.FormId == formId);
+                var form = await _formsDbc.GetFormByIdAsync(formId);
 
                 if (form == null)
                 {
@@ -491,7 +487,7 @@ namespace MyFreeFormForm.Controllers
         [HttpPost("delete-static")]
         public IActionResult DeleteStaticForm(int id)
         {
-            if (_formsDb.DeleteStaticForm(id)) // Assuming _formsDb.DeleteStaticForm handles the deletion logic
+            if (_formsDbc.DeleteStaticForm(id)) // Assuming _formsDb.DeleteStaticForm handles the deletion logic
             {
                 return RedirectToAction("DeletionSuccessPage"); // Redirect to a success notification page
             }
@@ -507,6 +503,7 @@ namespace MyFreeFormForm.Controllers
         [HttpPost("delete-dynamic")]
         public async Task<IActionResult> DeleteDynamicForm(int id)
         {
+            //Can remove the todo comment completed: 4/23/2024
             //TODO: Implement the logic to delete a dynamic form
             var form = await _formsDbc.GetFormByIdAsync(id); // Fetch the form data using the id
             if (form != null)
@@ -521,6 +518,9 @@ namespace MyFreeFormForm.Controllers
             return Json(new { success = false, message = "Form deletion failed" });
         }
 
+      /*  /// <summary>
+        /// Deletes all forms under a specific form name.
+        [HttpDelete("delete-form")]*/
 
     }
 }
