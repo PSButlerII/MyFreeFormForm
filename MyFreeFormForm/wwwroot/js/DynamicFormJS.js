@@ -445,6 +445,7 @@ e
                 if (!response.ok) throw new Error('Network response was not ok.');
                 // clear the carousel
                 resetCarousel();
+                resetForm();
                 console.log('Bulk submission success:', await response.json());
             } catch (error) {
                 console.error('Error during bulk form submission:', error);
@@ -701,6 +702,11 @@ e
 
     function resetCarousel() {
         carouselInner.innerHTML = '';
+        // Reset the totalItems count
+        totalItems = 0;
+        // reset the 'FormName' and 'Description' fields
+        document.getElementById('FormName').value = '';
+        document.getElementById('Description').value = '';
         currentIndex = 0; // Reset index
         updateIndexDisplay();
     }
