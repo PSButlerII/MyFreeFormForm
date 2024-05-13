@@ -72,6 +72,25 @@ namespace MyFreeFormForm.Services
             }
         }
 
+        public async Task<List<Form>> GetFormsByIdsAsync(List<int> formIds)
+        {
+            try
+            {
+                return await _context.Forms
+                    .Include(f => f.FormFields)
+                    .Include(f => f.FormNotes)
+                    .Where(f => formIds.Contains(f.FormId))
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting forms");
+
+                return new List<Form>();
+            }
+        }
+
         public List<Form> GetFormsByUser(string userId)
         {
             try
@@ -346,7 +365,7 @@ namespace MyFreeFormForm.Services
 
                 form.FormNotes.Add(new FormNotes
                 {
-                    Note = notes,
+                    Notes = notes,
                     CreatedDate = DateTime.Now
                 });
 
@@ -417,7 +436,7 @@ namespace MyFreeFormForm.Services
                     return false;
                 }
 
-                note.Note = notes;
+                note.Notes = notes;
                 note.UpdatedDate = DateTime.Now;
 
                 _context.SaveChanges();
@@ -540,6 +559,20 @@ namespace MyFreeFormForm.Services
             return await _context.Forms
                 .Include(f => f.FormFields)
                 .Where(f => f.UserId == userId && f.FormFields.Any(ff => ff.FieldName == fieldName && ff.FieldDateValue >= startDate && ff.FieldDateValue <= endDate))
+                .ToListAsync();
+        }
+
+        internal async Task<IEnumerable<FormNotes>> GetNotesByFormIdsAsync(List<int> idList)
+        {
+            return await _context.FormNotes
+                .Where(n => idList.Contains(n.FormId))
+                .ToListAsync();
+        }
+
+        internal async Task<IEnumerable<FormField>> GetFieldsByFormIdAsync(int formId)
+        {
+            return await _context.FormFields
+                .Where(ff => ff.FormId == formId)
                 .ToListAsync();
         }
     }

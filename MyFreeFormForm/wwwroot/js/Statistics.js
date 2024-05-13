@@ -126,9 +126,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let config = {
             type: chartType, // Dynamic chart type
             data: {
-                labels: data.labels, 
+                labels: data.labels,
                 datasets: myDatasets
-            },           
+            },
             options: {
                 scales: {},
                 plugins: {
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         position: 'top'
                     }
                 },
-                
+
             }
         };
 

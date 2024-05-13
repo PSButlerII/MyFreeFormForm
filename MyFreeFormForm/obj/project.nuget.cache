@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "pMDJceSCmkCWGszRKscWgp+0gWBlRpXHiJAlrDyED7Ql7aIbfybhAp52Qg+j6oU9ml4lwzlaxwYj3beYdsFWTg==",
+  "dgSpecHash": "Bodu461WjnVCAx9xJxSAVYizVOVJCAprfmlEIVatlQukzeQPqexa4aX9CaBe0VnQmR5oSsaU/9Z1EVpHQvdkpw==",
   "success": true,
   "projectFilePath": "C:\\Users\\prest\\source\\repos\\MyFreeFormForm\\MyFreeFormForm\\MyFreeFormForm.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\prest\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
+    "C:\\Users\\prest\\.nuget\\packages\\csvhelper\\32.0.1\\csvhelper.32.0.1.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\elasticsearch.net\\7.17.4\\elasticsearch.net.7.17.4.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\epplus\\7.1.1\\epplus.7.1.1.nupkg.sha512",
     "C:\\Users\\prest\\.nuget\\packages\\epplus.interfaces\\6.1.1\\epplus.interfaces.6.1.1.nupkg.sha512",

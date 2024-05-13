@@ -97,7 +97,7 @@ namespace MyFreeFormForm.Services
                 {
                     var formNotes = new FormNotes
                     {
-                        Note = note.Note,
+                        Notes = note.Notes,
                         CreatedDate = DateTime.Now,
                         Form = myForm // This sets the relationship
                     };

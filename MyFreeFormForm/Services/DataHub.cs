@@ -56,6 +56,6 @@ namespace MyFreeFormForm.Services
                 _logger.LogError(ex, "Error processing RequestData");
                 throw;
             }
-         }
+        }
     }
 }

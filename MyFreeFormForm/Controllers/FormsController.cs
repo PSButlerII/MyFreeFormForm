@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using MyFreeFormForm.Data;
@@ -83,7 +84,7 @@ namespace MyFreeFormForm.Controllers
                 var indices = new HashSet<int>();
 
                 // Regular expression to match field indices
-                var regex = new Regex(@"Fields\[(\d+)\]");
+                var regex = new Regex(@"0Fields\[(\d+)\]");
 
                 foreach (var key in form.Keys)
                 {
@@ -146,17 +147,17 @@ namespace MyFreeFormForm.Controllers
                         }
                     }
                     // Add the notes to the formNotes list
-                    // Note sure if "Note" is the correct key to use here.  Need to check the key in the form data
+                    // Notes sure if "Notes" is the correct key to use here.  Need to check the key in the form data
                     foreach (var key in form.Keys.Where(k => k.StartsWith("FormNote")))
                     {
                         Console.BackgroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Note: {form[key]}, and The key from the loop: {key}");
+                        Console.WriteLine($"Notes: {form[key]}, and The key from the loop: {key}");
                         var noteValue = form[key];
                         if (!string.IsNullOrEmpty(noteValue))
                         {
                             dynamicFormModel.FormNotes.Add(new FormNotes
                             {
-                                Note = new List<string> { noteValue }, // Assuming each FormNotes object contains a list of notes
+                                Notes = new List<string> { noteValue }, // Assuming each FormNotes object contains a list of notes
                                 CreatedDate = DateTime.Now,
                                 UpdatedDate = DateTime.Now
                             });
@@ -175,6 +176,59 @@ namespace MyFreeFormForm.Controllers
                 return Json(new { success = false, message = "Validation failed", errors = errors });
             }
             return Json(new { success = false, message = "Form submission failed" });
+        }
+
+        [HttpPost("dynamic/bulk")]
+        public async Task<IActionResult> SubmitDynamicForms([FromBody] List<DynamicFormModel> forms)
+        {
+            var validationErrors = new List<string>();
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = "Validation failed", errors });
+            }
+
+            foreach (var form in forms)
+            {
+                // Validate each form and its fields
+                if (!ValidateForm(form, out List<string> formErrors))
+                {
+                    validationErrors.AddRange(formErrors);
+                    continue;  // Skip further processing if validation fails
+                }
+
+                // Assuming a method that enqueues the form for processing
+                await _formsDbc.EnqueueFormSubmissionAsync(form);
+            }
+
+            if (validationErrors.Any())
+            {
+                return Json(new { success = false, message = "Form submission failed", errors = validationErrors });
+            }
+
+            return Json(new { success = true, message = "All forms queued successfully" });
+        }
+
+        private bool ValidateForm(DynamicFormModel form, out List<string> errors)
+        {
+            errors = new List<string>();
+            // Example validation logic here
+         
+            if (string.IsNullOrWhiteSpace(form.FormName))
+            {
+                errors.Add("Form Name is required.");
+            }
+            if (string.IsNullOrWhiteSpace(form.Description))
+            {
+                errors.Add("Description is required.");
+            }
+            if (form.Fields == null || form.Fields.Count == 0)
+            {
+                errors.Add("At least one field is required.");
+            }
+            //return errors.Count == 0;
+            return true;  // Return false if validation fails
         }
 
         /// <summary>
@@ -209,6 +263,22 @@ namespace MyFreeFormForm.Controllers
             return View(model);
         }
 
+        [HttpGet("GetDynamic")]
+        public IActionResult GetDynamicFormData()
+        {
+            var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(loggedInUserId))
+            {
+                return Json(new { RedirectUrl = "/Identity/Account/Login" });
+            }
+
+            var formInstance = _context.Forms
+                .Where(f => f.UserId == loggedInUserId)
+                .GroupBy(f => f.FormName)
+                .ToDictionary(g => g.Key, g => g.Select(f => f.FormId).ToList());
+
+            return Json(formInstance);
+        }
 
         /// <summary>
         ///  
@@ -224,7 +294,7 @@ namespace MyFreeFormForm.Controllers
                 {
                     // Assuming you want to handle Excel files specifically
                     // and fall back to CSV for other cases
-                    List<Dictionary<string, string>> parsedData = null; // To store parsed data
+                    List<Dictionary<string, string>> parsedData = new List<Dictionary<string, string>>(); // To store parsed data
                     if (fileUpload.FileName.EndsWith(".xlsx"))
                     {
                         // Parse Excel file
@@ -235,7 +305,13 @@ namespace MyFreeFormForm.Controllers
                     else if (fileUpload.FileName.EndsWith(".csv"))
                     {
                         // Parse CSV file
-                        parsedData = await _fileParser.ParseCsvFile(fileUpload);
+                        // Parse CSV file and convert to string dictionary
+                        var objectData = await _fileParser.ParseCsvFile(fileUpload);
+                        parsedData = objectData.Select(dict =>
+                            dict.ToDictionary(
+                                kvp => kvp.Key,
+                                kvp => kvp.Value?.ToString() ?? string.Empty)
+                            ).ToList();
                         // Get the delimiter from the parsedData using the key "Delimiter" and set the FieldOption to the delimiter in the parsedData(eg. "," or ";" or "|" or ":")
                         // Assuming 'delimiter' is a string containing the symbol like "," or ";"
                         string delimiterSymbol = parsedData.Last().ContainsKey("Delimiter") ? parsedData.Last()["Delimiter"].ToString() : string.Empty;
@@ -317,25 +393,16 @@ namespace MyFreeFormForm.Controllers
                  return View(form);
              }*/
 
-        /// <summary>
-        ///  
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         [HttpGet("LoadForms")]
         public async Task<IActionResult> LoadForms(string ids)
         {
-            var selectedData = new List<Dictionary<string, string>>(); 
+            var selectedData = new List<Dictionary<string, string>>();
             try
             {
                 var idList = ids.Split(',').Select(int.Parse).ToList();
 
-                var forms = await _context.Forms
-                                          .Where(f => idList.Contains(f.FormId))
-                                          .ToListAsync();
-                var notes = await _context.FormNotes
-                                  .Where(fn => idList.Contains(fn.FormId))
-                                  .ToListAsync();
+                var forms = await _formsDbc.GetFormsByIdsAsync(idList);
+                var notes = await _formsDbc.GetNotesByFormIdsAsync(idList);
 
                 Console.BackgroundColor = ConsoleColor.DarkGreen;
                 Console.WriteLine($"{notes}");
@@ -343,9 +410,7 @@ namespace MyFreeFormForm.Controllers
                 // Now get the fields for each form and add them to an object
                 foreach (var form in forms)
                 {
-                    var fields = await _context.FormFields
-                                              .Where(ff => ff.FormId == form.FormId)
-                                              .ToListAsync();
+                    var fields = await _formsDbc.GetFieldsByFormIdAsync(form.FormId);
 
                     var formFields = new List<Dictionary<string, string>>();
 
@@ -360,7 +425,7 @@ namespace MyFreeFormForm.Controllers
                         formFields.Add(fieldData);
                     }
                     var formNotes = notes.Where(n => n.FormId == form.FormId)
-                                 .Select(n => n.Note) // Assuming NoteText is the note content
+                                 .Select(n => n.Notes) // Assuming NoteText is the note content
                                  .ToList();
                     // Will need to eventual add an entry for files
                     selectedData.Add(new Dictionary<string, string>
@@ -415,7 +480,7 @@ namespace MyFreeFormForm.Controllers
                 {
                     foreach (var note in formNotes)
                     {
-                        formNotesList.Add(note.Note.ToString());
+                        formNotesList.Add(note.Notes.ToString());
                     }
                 }
                 return PartialView("_formNotes", formNotes);
@@ -446,14 +511,14 @@ namespace MyFreeFormForm.Controllers
 
                 form.FormNotes.Add(new FormNotes
                 {
-                    Note = new List<string> { note },
+                    Notes = new List<string> { note },
                     CreatedDate = DateTime.Now,
                     UpdatedDate = DateTime.Now
                 });
 
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Note added successfully" });
+                return Json(new { success = true, message = "Notes added successfully" });
             }
             catch (Exception ex)
             {
