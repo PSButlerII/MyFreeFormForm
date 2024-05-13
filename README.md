@@ -60,7 +60,7 @@ Please read CONTRIBUTING.md for details on our code of conduct, and the process 
 We use SemVer for versioning. For the versions available, see the tags on this repository.
 
 ### Authors
-Your Name - Initial work - YourUsername
+Preston Stewart Butler II
 See also the list of contributors who participated in this project.
 
 ### License
