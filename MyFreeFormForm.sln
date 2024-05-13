@@ -5,6 +5,8 @@ VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyFreeFormForm", "MyFreeFormForm\MyFreeFormForm.csproj", "{6BDAFABF-28AE-48CC-9508-D9471D75E09F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyFreeFormFormTests", "MyFreeFormFormTests\MyFreeFormFormTests.csproj", "{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{6BDAFABF-28AE-48CC-9508-D9471D75E09F}.Release|x64.Build.0 = Release|x64
 		{6BDAFABF-28AE-48CC-9508-D9471D75E09F}.Release|x86.ActiveCfg = Release|Any CPU
 		{6BDAFABF-28AE-48CC-9508-D9471D75E09F}.Release|x86.Build.0 = Release|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Debug|x64.Build.0 = Debug|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Debug|x86.Build.0 = Debug|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Release|x64.ActiveCfg = Release|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Release|x64.Build.0 = Release|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Release|x86.ActiveCfg = Release|Any CPU
+		{7A46CAAB-4DF6-405F-8EFC-70E0947BF439}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

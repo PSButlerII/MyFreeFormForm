@@ -50,6 +50,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "CsvHelper": {
+              "target": "Package",
+              "version": "[32.0.1, )"
+            },
             "EPPlus": {
               "target": "Package",
               "version": "[7.1.1, )"

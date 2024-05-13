@@ -41,12 +41,42 @@ else
         function deleteForm(formId) {
             if (confirm("Are you sure you want to delete this form?")) {
                 // Implement the delete logic, typically calling an API
+                try {
+                    const response = await fetch(`/api/forms/${formId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        alert('Form deleted successfully.');
+                        location.reload();
+                    } else {
+                        alert('Failed to delete form.');
+                    }
+                } catch (error) {
+                    console.error('Failed to delete form.', error);
+                }
+
+                
             }
         }
 
         function deleteAllForms(formName) {
             if (confirm("Are you sure you want to delete all forms under " + formName + "?")) {
-                // Implement the delete all logic, typically calling an API
+               
+                // Implement the delete logic, typically calling an API
+                try {
+                    const response = await fetch(`/api/forms/${formName}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        alert('All forms under ' + formName + ' deleted successfully.');
+                        location.reload();
+                    } else {
+                        alert('Failed to delete forms.');
+                    }
+                } catch (error) {
+                    console.error('Failed to delete forms.', error);
             }
         }
     </script>

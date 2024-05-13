@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let fieldTypePatterns = {};
     //let isValid = true;
 
+    /*setInterval(updateFormsList, 30000);*/
+
     async function getFieldTypePatterns() {
         try {
             const response = await fetch('/forms/patterns');
@@ -410,31 +412,92 @@ e
         submitAllForms();
     });
 
+    // Example Usage
+/*    const result = validateField('Email', 'example@domain.com');
+    console.log(result); // Outputs "Valid" or the specific error message*/
+
     async function submitAllForms() {
-        const forms = document.querySelectorAll('.carousel-item form, #staticForm');
-        if (forms.length === 0) {
-            console.error('No forms found.');
-            return;
-        }
-        for (const form of forms) {
-            const formData = new FormData(form);
-            formData.append('FormName', document.getElementById('FormName').value);
-            formData.append('Description', document.getElementById('Description').value);
-            formData.append('UserId', loggedInUser);
+            const forms = document.querySelectorAll('.carousel-item form, #staticForm');
+            if (forms.length === 0) {
+                console.error('No forms found.');
+                return;
+            }
+
+            const allFormsData = [];
+
+            for (const form of forms) {
+                const formData = new FormData(form);
+                formData.append('FormName', document.getElementById('FormName').value);
+                formData.append('Description', document.getElementById('Description').value);
+                formData.append('UserId', loggedInUser);
+                const parsedFormData = parseForms(formData);
+                allFormsData.push(parsedFormData); // Assumes parseForms returns an array of form data objects
+            };
+
+            // Post the data as JSON
             try {
-                console.time('FormSubmission');
-                const response = await fetch('dynamic', {
+                console.time('BulkFormSubmission');
+                const response = await fetch('dynamic/bulk', {
                     method: 'POST',
-                    body: formData // No need to set Content-Type; it will be set automatically with boundary
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(allFormsData)
                 });
                 if (!response.ok) throw new Error('Network response was not ok.');
-                console.log('Submission success:', await response.json());
+                // clear the carousel
+                resetCarousel();
+                resetForm();
+                console.log('Bulk submission success:', await response.json());
             } catch (error) {
-                console.error('Error during form submission:', error);
+                console.error('Error during bulk form submission:', error);
             } finally {
-                console.timeEnd('FormSubmission');
+                console.timeEnd('BulkFormSubmission');
             }
-        }
+      }
+
+    function parseForms(formData) {
+            const dynamicFormModel = {
+                FormName: formData.get('FormName') || document.getElementById('FormName')?.value,
+                Description: formData.get('Description') || document.getElementById('Description')?.value,
+                UserId: formData.get('UserId') || loggedInUser,
+                Fields: [],
+                FormNotes: []
+            };
+
+            let fieldData = {
+                FieldName: [],
+                FieldValue: [],
+                FieldType: []
+            };
+
+            // Parse the field data from formData
+            formData.forEach((value, key) => {
+                console.log("key: ", key, " Value: ", value);
+                const match = /Fields\[(\d+)\]\.(FieldName|FieldValue|FieldType)/.exec(key);
+                if (match) {
+                    const fieldType = match[2];
+                    value.split(',').forEach(val => {
+                        fieldData[fieldType].push(val.trim());
+                    });
+                } else {
+                    console.log('No match for:', key);
+                }
+            });
+
+            // Construct field objects
+            if (fieldData.FieldName.length === fieldData.FieldValue.length && fieldData.FieldName.length === fieldData.FieldType.length) {
+                fieldData.FieldName.forEach((name, i) => {
+                    dynamicFormModel.Fields.push({
+                        FieldName: name,
+                        FieldValue: fieldData.FieldValue[i],
+                        FieldType: fieldData.FieldType[i]
+                    });
+                });
+            } else {
+                console.error('Mismatch in number of FieldNames, FieldValues, and FieldTypes');
+            }
+            // if no validation errors, remove the field from the DynamicFormModel
+            console.log('Dynamic Form Model:', dynamicFormModel);
+            return dynamicFormModel; // Assuming this needs to be returned for further processing
     }
 
     // Ensure updateFieldNames function exists and is updated to handle the new structure
@@ -446,6 +509,98 @@ e
             if (input) input.name = `Fields[${index}].FieldName`;
             if (select) select.name = `Fields[${index}].FieldType`;
         });
+    }
+
+    window.loadForms = async function (formIds) {
+        // Construct the URL for the LoadForms action
+        // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
+        console.time('loadForm')
+        const url = `/Forms/LoadForms?ids=${formIds}`;
+        // formIds is an array of form ids
+        //const formIdList2 = formIds2.join(',');
+        // string of comma - separated form IDs, e.g., "1,2,3" and need to be seperated out into individual form IDs
+        // const formIds = formIds.split(',').map(id => parseInt(id, 10));
+        formIdList = formIds.split(',').map(id => parseInt(id, 10));
+        //console.log('Form Ids:', formIdList2);
+        console.log('Form Ids:', formIdList);
+        console.log(url);
+        // Fetch the forms from the server
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                //headers: { 'Accept': 'application/json', }
+            });
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const data = await response.json();
+            console.timeEnd('loadForm')
+
+            console.time('loadResponse')
+            console.log('Forms loaded:', data);
+            // Process the loaded forms
+            if (data.success && data.forms.length) {
+                const clearFields = confirm('Do you want to clear existing fields before adding new ones?');
+                if (clearFields) {
+                    resetCarousel();
+                    resetForm();
+                }
+                firstForm = data.forms[0];
+
+                // Update Form Name and Description fields
+                document.getElementById('FormName').value = firstForm.FormName || '';
+                document.getElementById('Description').value = firstForm.Description || '';
+
+                // because the data is coming back as response.json, the data is already an object. No need to parse it, just use it to add the forms
+                dataCarousel.style.display = '';
+
+                //staticSubmitBtn.style.display = 'hide'
+                //submitData.style.display = '';
+                //$('#uploadModal').modal('hide');
+                const carouselInner = document.getElementById('carouselInner');
+                data.forms.forEach((row, rowIndex) => {
+                    console.log(`My Form ${rowIndex}:`, row);
+
+                    const form = document.createElement('form');
+                    form.action = 'dynamic'; // Adjust if your application's route is different
+                    form.method = "POST";
+                    form.className = "form-group";
+                    form.id = `form-${rowIndex}`;
+
+                    const carouselItem = document.createElement('div');
+                    carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
+                    carouselItem.classList.add('carousel-item');
+                    if (rowIndex === 0) carouselItem.classList.add('active');
+
+                    addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
+
+                    const submitBtn = document.createElement('button');
+                    submitBtn.type = "submit";
+                    submitBtn.className = "btn btn-primary";
+                    submitBtn.textContent = "Submit Form";
+
+                    // Append button to form, then form to carouselItem
+                    form.appendChild(submitBtn);
+                    //form.appendChild(removeBtn);
+                    carouselItem.appendChild(form);
+                    carouselInner.appendChild(carouselItem);
+
+                    // Count the number of forms
+                    const formCount = document.querySelectorAll('.carousel-item').length;
+                    totalItems = formCount;
+                    updateIndexDisplay();
+                    // Setup form submission
+                    setupFormSubmission(form, rowIndex);
+
+
+                });
+
+                $('#staticSubmitBtn').hide();
+            }
+            console.timeEnd('loadResponse')
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
 
     if (uploadForm) {
@@ -547,6 +702,11 @@ e
 
     function resetCarousel() {
         carouselInner.innerHTML = '';
+        // Reset the totalItems count
+        totalItems = 0;
+        // reset the 'FormName' and 'Description' fields
+        document.getElementById('FormName').value = '';
+        document.getElementById('Description').value = '';
         currentIndex = 0; // Reset index
         updateIndexDisplay();
     }
@@ -729,107 +889,28 @@ e
         });
     }
 
-    function refreshUploadedDocuments() {
-        fetch(`/Forms/UpdateUploadedDocuments`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('uploadedDocumentsPanel').innerHTML = html;
-            })
-            .catch(error => console.error('Error loading uploaded documents:', error));
-    }  
-
-    window.loadForms = async function (formIds) {
-        // Construct the URL for the LoadForms action
-        // If the url needs to call an endpoint from the FormsController, the url will be different than the one below. I will look like this: /Forms/LoadForms?ids=1,2,3
-        console.time('loadForm')
-        const url = `/Forms/LoadForms?ids=${formIds}`;
-        // formIds is an array of form ids
-        //const formIdList2 = formIds2.join(',');
-        // string of comma - separated form IDs, e.g., "1,2,3" and need to be seperated out into individual form IDs
-        // const formIds = formIds.split(',').map(id => parseInt(id, 10));
-        formIdList = formIds.split(',').map(id => parseInt(id, 10));
-        //console.log('Form Ids:', formIdList2);
-        console.log('Form Ids:', formIdList);
-        console.log(url);
-        // Fetch the forms from the server
-
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                //headers: { 'Accept': 'application/json', }
-            });
-            if (!response.ok) throw new Error('Network response was not ok.');
-            const data = await response.json();
-            console.timeEnd('loadForm')
-
-            console.time('loadResponse')
-            console.log('Forms loaded:', data);
-            // Process the loaded forms
-            if (data.success && data.forms.length) {
-                const clearFields = confirm('Do you want to clear existing fields before adding new ones?');
-                if (clearFields) {
-                    resetCarousel();
-                    resetForm();
+    function updateFormsList() {
+        $.ajax({
+            url: '/Forms/GetDynamic',  // Adjust based on your route
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                if (data.RedirectUrl) {
+                    window.location.href = data.RedirectUrl; // Redirect if not logged in
+                } else {
+                    var listHtml = '';
+                    $.each(data, function (key, value) {
+                        listHtml += '<li><span class="clickable-text" onclick="loadForms(\'' + value.join(',') + '\')">' + key + '</span></li>';
+                    });
+                    $('#formsList').html(listHtml);
                 }
-                firstForm = data.forms[0];
-
-                // Update Form Name and Description fields
-                document.getElementById('FormName').value = firstForm.FormName || '';
-                document.getElementById('Description').value = firstForm.Description || '';
-
-                // because the data is coming back as response.json, the data is already an object. No need to parse it, just use it to add the forms
-                dataCarousel.style.display = '';
-
-                //staticSubmitBtn.style.display = 'hide'
-                //submitData.style.display = '';
-                //$('#uploadModal').modal('hide');
-                const carouselInner = document.getElementById('carouselInner');
-                data.forms.forEach((row, rowIndex) => {
-                    console.log(`My Form ${rowIndex}:`, row);
-
-                    const form = document.createElement('form');
-                    form.action = 'dynamic'; // Adjust if your application's route is different
-                    form.method = "POST";
-                    form.className = "form-group";
-                    form.id = `form-${rowIndex}`;
-
-                    const carouselItem = document.createElement('div');
-                    carouselItem.className = "carousel-item" + (rowIndex === 0 ? " active" : "");
-                    carouselItem.classList.add('carousel-item');
-                    if (rowIndex === 0) carouselItem.classList.add('active');
-
-                    addFormSection(row, rowIndex, form); // Now passing form instead of carouselItem
-
-                    const submitBtn = document.createElement('button');
-                    submitBtn.type = "submit";
-                    submitBtn.className = "btn btn-primary";
-                    submitBtn.textContent = "Submit Form";
-
-                    // Append button to form, then form to carouselItem
-                    form.appendChild(submitBtn);
-                    //form.appendChild(removeBtn);
-                    carouselItem.appendChild(form);
-                    carouselInner.appendChild(carouselItem);
-
-                    // Count the number of forms
-                    const formCount = document.querySelectorAll('.carousel-item').length;
-                    totalItems = formCount;
-                    updateIndexDisplay();
-                    // Setup form submission
-                    setupFormSubmission(form, rowIndex);
-
-                    
-                });
-
-                $('#staticSubmitBtn').hide();
+            },
+            error: function () {
+                alert('Error fetching forms');
             }
-            console.timeEnd('loadResponse')
-
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }  
-
+        });
+    }     
+    
     async function AddFormNotes(formId, note) {
         //TODO: This function should only add notes to the form that is currently being displayed
         const url = `/Forms/UpdateFormNotes?formId=${formId}&note=${note}`;
@@ -845,13 +926,6 @@ e
             console.error('Error:', error);
         }
     }
-/*        // Example: Refresh every 30 seconds
-        setInterval(() => {
-            //refreshUploadedDocuments();
-            // You would need a way to determine the relevant formId for updating notes
-            refreshFormNotes(formId);
-            console.log('Refreshing form notes and uploaded documents')
-        }, 3000);*/
 
     // Add event listener to the createTemplate button
     document.getElementById('createTemplate').addEventListener('click', createTemplate);
@@ -978,6 +1052,6 @@ e
 
     // Usage
     logMessage('INFO', 'This is a test log message.');
-
+    updateFormsList();
     console.timeEnd('DynamicFormJS');
 });

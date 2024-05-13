@@ -1,6 +1,5 @@
 ﻿using MyFreeFormForm.Helpers;
 
-
 namespace MyFreeFormForm.Models
 {
     public class DynamicField
@@ -19,8 +18,26 @@ namespace MyFreeFormForm.Models
         //Maybe I need to add the FormNotes property here.  This way I can pass the notes to the FormNotes model
         public List<FormNotes> FormNotes { get; set; } = new List<FormNotes>();
         public string UserId { get; set; }
+
+        internal bool Validate(out List<string> errors)
+        {
+            errors = new List<string>();
+            if (string.IsNullOrWhiteSpace(FormName))
+            {
+                errors.Add("Form Name is required.");
+            }
+            if (string.IsNullOrWhiteSpace(Description))
+            {
+                errors.Add("Description is required.");
+            }
+            if (Fields == null || Fields.Count == 0)
+            {
+                errors.Add("At least one field is required.");
+            }
+            return errors.Count == 0;
+        }
         //TODO: Need to be able to attach files to the form
         //public List<IFormFile> Files { get; set; } = new List<IFormFile>();
-       //public Form FormInstance { get; set; }
+        //public Form FormInstance { get; set; }
     }
 }

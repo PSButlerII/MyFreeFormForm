@@ -18,6 +18,7 @@ namespace MyFreeFormForm.Services
 
     public class FormProcessorService : IFormProcessorService
     {
+        private string parentId = new Guid().ToString();
         private readonly ApplicationDbContext _context;
         public FieldOptions fieldOptions;
         private readonly ILogger<FormProcessorService> ILogger = new Logger<FormProcessorService>(new LoggerFactory());
@@ -32,7 +33,6 @@ namespace MyFreeFormForm.Services
         public async Task<bool> ProcessesFormAsync(DynamicFormModel model)
         {
             if (model == null) return false;
-
             try
             {
                 var formName = model.FormName;
@@ -97,7 +97,7 @@ namespace MyFreeFormForm.Services
                 {
                     var formNotes = new FormNotes
                     {
-                        Note = note.Note,
+                        Notes = note.Notes,
                         CreatedDate = DateTime.Now,
                         Form = myForm // This sets the relationship
                     };

@@ -1,12 +1,3 @@
-﻿@{
-    var groupedForms = ViewBag.formInstance as Dictionary<string, List<int>>;
-}
-
-<ul>
-    @foreach (var group in groupedForms)
-    {
-        <li>
-            <span class="clickable-text" onclick="loadForms('@String.Join(",", group.Value)')"> @group.Key </span>
-        </li>
-    }
+﻿<ul id="formsList">
+    <!-- This list will be populated dynamically via JavaScript -->
 </ul>
