@@ -357,10 +357,7 @@ e
 
     //Need to create another function to handle the form submission of all of the forms that are in the carousel or the static form
     // This function will be called when the user clicks the submit button
-    // This function will loop through all of the forms and submit them
-
-    // Add event listener to the submit button
-    //document.getElementById('submitData').addEventListener('click', submitAllForms);
+    // This function will loop through all of the forms and submit them    
 
     async function setupFormSubmission(form, rowIndex) {
         form.addEventListener('submit', async function (e) {
