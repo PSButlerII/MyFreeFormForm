@@ -24,7 +24,7 @@ jobs:
 
         curl -X POST \
           -H "Content-Type: application/json" \
-          -H "Authorization: Basic $(echo -n ":${AZURE_DEVOPS_PAT}" | base64)" \
+          -H "Authorization: Basic $(echo -n ":${ISSUE_TO_AZURE}" | base64)" \
           -d '{
             "fields": {
               "System.Title": "'"${ISSUE_TITLE}"'",
