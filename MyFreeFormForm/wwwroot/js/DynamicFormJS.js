@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function () {
     console.time('DynamicFormJS');
     const form = document.querySelector('form');
@@ -356,10 +357,7 @@ e
 
     //Need to create another function to handle the form submission of all of the forms that are in the carousel or the static form
     // This function will be called when the user clicks the submit button
-    // This function will loop through all of the forms and submit them
-
-    // Add event listener to the submit button
-    //document.getElementById('submitData').addEventListener('click', submitAllForms);
+    // This function will loop through all of the forms and submit them    
 
     async function setupFormSubmission(form, rowIndex) {
         form.addEventListener('submit', async function (e) {
@@ -424,14 +422,16 @@ e
 
         const allFormsData = [];
 
-        for (const form of forms) {
-            const formData = new FormData(form);
-            formData.append('FormName', document.getElementById('FormName').value);
-            formData.append('Description', document.getElementById('Description').value);
-            formData.append('UserId', loggedInUser);
-            const parsedFormData = parseForms(formData);
-            allFormsData.push(parsedFormData); // Assumes parseForms returns an array of form data objects
-        };
+            for (const form of forms) {
+                const formData = new FormData(form);
+                formData.append('FormName', document.getElementById('FormName').value);
+                formData.append('Description', document.getElementById('Description').value);
+                formData.append('UserId', loggedInUser);
+                formData.append('ParentFormId', generateUUID());
+                // Question: How would i check the uuid to see if it is unique?  
+                const parsedFormData = parseForms(formData);
+                allFormsData.push(parsedFormData); // Assumes parseForms returns an array of form data objects
+            };
 
         // Post the data as JSON
         try {
@@ -454,13 +454,13 @@ e
     }
 
     function parseForms(formData) {
-        const dynamicFormModel = {
-            FormName: formData.get('FormName') || document.getElementById('FormName')?.value,
-            Description: formData.get('Description') || document.getElementById('Description')?.value,
-            UserId: formData.get('UserId') || loggedInUser,
-            Fields: [],
-            FormNotes: []
-        };
+            const dynamicFormModel = {
+                FormName: formData.get('FormName') || document.getElementById('FormName')?.value,
+                Description: formData.get('Description') || document.getElementById('Description')?.value,
+                UserId: formData.get('UserId') || loggedInUser,
+                Fields: [],
+                FormNotes: []
+            };
 
         let fieldData = {
             FieldName: [],
@@ -1049,6 +1049,14 @@ e
             .catch(error => console.error('Failed to log message to server:', error));
     }
 
+    function generateUUID() {
+        // Generate a random UUID using crypto API
+        const array = new Uint32Array(4);
+        window.crypto.getRandomValues(array);
+        const parts = Array.from(array).map(num => num.toString(16).padStart(8, '0'));
+
+        return `${parts[0]}-${parts[1]}-${parts[2]}-${parts[3]}`;
+    }
     // Usage
     logMessage('INFO', 'This is a test log message.');
     updateFormsList();

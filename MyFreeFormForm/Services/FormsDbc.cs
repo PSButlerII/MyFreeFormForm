@@ -54,6 +54,24 @@ namespace MyFreeFormForm.Services
             }
         }
 
+        public async Task<string?> GetParentFormIdByFormIdAsync(int formId)
+        {
+            try
+            {
+                return await _context.Forms
+                    .Where(f => f.FormId == formId)
+                    .Select(f => f.ParentFormId)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error getting parent form id for form {formId}", formId);
+
+                return null;
+            }
+        }
+
         public List<Form> GetForms()
         {
             try
@@ -330,6 +348,33 @@ namespace MyFreeFormForm.Services
                     .Include(f => f.FormFields)
                     .Include(f => f.FormNotes)
                     .FirstOrDefaultAsync(f => f.FormId == id);
+
+                if (form == null)
+                {
+                    return false;
+                }
+
+                _context.Forms.Remove(form);
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                _logger.LogError(ex, "Error deleting form {formId}", id);
+
+                return false;
+            }
+        }
+        public async Task<bool> DeleteFormsAsync(string id)
+        {
+            try
+            {
+                var form = await _context.Forms
+                    .Include(f => f.FormFields)
+                    .Include(f => f.FormNotes)
+                    .FirstOrDefaultAsync(f => f.ParentFormId == id);
 
                 if (form == null)
                 {

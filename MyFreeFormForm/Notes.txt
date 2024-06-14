@@ -1,0 +1,13 @@
+﻿namespace MyFreeFormForm
+{
+    public class Notes
+    {
+        - P.B. 5/13/2024 We will be adding the parentId to the form so that we can track the parent form that the form was created from.
+        This will also make it easier to delete all forms that were created from a parent form. 
+        It will also allow the application to give data visualizations or reports on the parent form and all of its children forms.
+
+
+
+
+    }
+}
