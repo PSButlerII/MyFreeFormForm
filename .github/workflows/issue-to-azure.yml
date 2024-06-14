@@ -1,0 +1,34 @@
+name: Sync GitHub Issues to Azure DevOps
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  sync-issues:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Sync GitHub Issue to Azure DevOps
+      env:
+        AZURE_DEVOPS_ORG: psb1
+        AZURE_DEVOPS_PROJECT: My Freeform Form
+        AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
+      run: |
+        ISSUE_TITLE="${{ github.event.issue.title }}"
+        ISSUE_BODY="${{ github.event.issue.body }}"
+        ISSUE_URL="${{ github.event.issue.html_url }}"
+
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Basic $(echo -n ":${AZURE_DEVOPS_PAT}" | base64)" \
+          -d '{
+            "fields": {
+              "System.Title": "'"${ISSUE_TITLE}"'",
+              "System.Description": "'"${ISSUE_BODY}\n\n[GitHub Issue](${ISSUE_URL})"'"
+            }
+          }' \
+          "https://dev.azure.com/psb1/My%20Freeform%20Form/_apis/wit/workitems/TODO?api-version=6.0"
