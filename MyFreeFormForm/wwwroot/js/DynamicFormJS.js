@@ -146,7 +146,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-
     document?.querySelector('#customNextBtn')?.addEventListener('click', handleCarouselControlClick);
 
     document?.querySelector('#customPrevBtn')?.addEventListener('click', handleCarouselControlClick);
@@ -417,87 +416,87 @@ e
     console.log(result); // Outputs "Valid" or the specific error message*/
 
     async function submitAllForms() {
-            const forms = document.querySelectorAll('.carousel-item form, #staticForm');
-            if (forms.length === 0) {
-                console.error('No forms found.');
-                return;
-            }
+        const forms = document.querySelectorAll('.carousel-item form, #staticForm');
+        if (forms.length === 0) {
+            console.error('No forms found.');
+            return;
+        }
 
-            const allFormsData = [];
+        const allFormsData = [];
 
-            for (const form of forms) {
-                const formData = new FormData(form);
-                formData.append('FormName', document.getElementById('FormName').value);
-                formData.append('Description', document.getElementById('Description').value);
-                formData.append('UserId', loggedInUser);
-                const parsedFormData = parseForms(formData);
-                allFormsData.push(parsedFormData); // Assumes parseForms returns an array of form data objects
-            };
+        for (const form of forms) {
+            const formData = new FormData(form);
+            formData.append('FormName', document.getElementById('FormName').value);
+            formData.append('Description', document.getElementById('Description').value);
+            formData.append('UserId', loggedInUser);
+            const parsedFormData = parseForms(formData);
+            allFormsData.push(parsedFormData); // Assumes parseForms returns an array of form data objects
+        };
 
-            // Post the data as JSON
-            try {
-                console.time('BulkFormSubmission');
-                const response = await fetch('dynamic/bulk', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(allFormsData)
-                });
-                if (!response.ok) throw new Error('Network response was not ok.');
-                // clear the carousel
-                resetCarousel();
-                resetForm();
-                console.log('Bulk submission success:', await response.json());
-            } catch (error) {
-                console.error('Error during bulk form submission:', error);
-            } finally {
-                console.timeEnd('BulkFormSubmission');
-            }
-      }
+        // Post the data as JSON
+        try {
+            console.time('BulkFormSubmission');
+            const response = await fetch('dynamic/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(allFormsData)
+            });
+            if (!response.ok) throw new Error('Network response was not ok.');
+            // clear the carousel
+            resetCarousel();
+            resetForm();
+            console.log('Bulk submission success:', await response.json());
+        } catch (error) {
+            console.error('Error during bulk form submission:', error);
+        } finally {
+            console.timeEnd('BulkFormSubmission');
+        }
+    }
 
     function parseForms(formData) {
-            const dynamicFormModel = {
-                FormName: formData.get('FormName') || document.getElementById('FormName')?.value,
-                Description: formData.get('Description') || document.getElementById('Description')?.value,
-                UserId: formData.get('UserId') || loggedInUser,
-                Fields: [],
-                FormNotes: []
-            };
+        const dynamicFormModel = {
+            FormName: formData.get('FormName') || document.getElementById('FormName')?.value,
+            Description: formData.get('Description') || document.getElementById('Description')?.value,
+            UserId: formData.get('UserId') || loggedInUser,
+            Fields: [],
+            FormNotes: []
+        };
 
-            let fieldData = {
-                FieldName: [],
-                FieldValue: [],
-                FieldType: []
-            };
+        let fieldData = {
+            FieldName: [],
+            FieldValue: [],
+            FieldType: []
+        };
 
-            // Parse the field data from formData
-            formData.forEach((value, key) => {
-                console.log("key: ", key, " Value: ", value);
-                const match = /Fields\[(\d+)\]\.(FieldName|FieldValue|FieldType)/.exec(key);
-                if (match) {
-                    const fieldType = match[2];
-                    value.split(',').forEach(val => {
-                        fieldData[fieldType].push(val.trim());
-                    });
-                } else {
-                    console.log('No match for:', key);
-                }
-            });
-
-            // Construct field objects
-            if (fieldData.FieldName.length === fieldData.FieldValue.length && fieldData.FieldName.length === fieldData.FieldType.length) {
-                fieldData.FieldName.forEach((name, i) => {
-                    dynamicFormModel.Fields.push({
-                        FieldName: name,
-                        FieldValue: fieldData.FieldValue[i],
-                        FieldType: fieldData.FieldType[i]
-                    });
+        // Parse the field data from formData
+        formData.forEach((value, key) => {
+            console.log("key: ", key, " Value: ", value);
+            const match = /Fields\[(\d+)\]\.(FieldName|FieldValue|FieldType)/.exec(key);
+            if (match) {
+                const fieldType = match[2];
+                value.split(',').forEach(val => {
+                    fieldData[fieldType].push(val.trim());
                 });
             } else {
-                console.error('Mismatch in number of FieldNames, FieldValues, and FieldTypes');
+                console.log('No match for:', key);
             }
-            // if no validation errors, remove the field from the DynamicFormModel
-            console.log('Dynamic Form Model:', dynamicFormModel);
-            return dynamicFormModel; // Assuming this needs to be returned for further processing
+        });
+
+        // Construct field objects
+        if (fieldData.FieldName.length === fieldData.FieldValue.length && fieldData.FieldName.length === fieldData.FieldType.length) {
+            fieldData.FieldName.forEach((name, i) => {
+                dynamicFormModel.Fields.push({
+                    FieldName: name,
+                    FieldValue: fieldData.FieldValue[i],
+                    FieldType: fieldData.FieldType[i]
+                });
+            });
+        } else {
+            console.error('Mismatch in number of FieldNames, FieldValues, and FieldTypes');
+        }
+        // if no validation errors, remove the field from the DynamicFormModel
+        console.log('Dynamic Form Model:', dynamicFormModel);
+        return dynamicFormModel; // Assuming this needs to be returned for further processing
     }
 
     // Ensure updateFieldNames function exists and is updated to handle the new structure
