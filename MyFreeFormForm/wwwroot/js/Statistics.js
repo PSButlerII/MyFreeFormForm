@@ -2,6 +2,7 @@
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns'; // This imports the adapter
 
+
 document.addEventListener('DOMContentLoaded', function () {
     let chart; // Global reference to the chart instance
     let connection = null;

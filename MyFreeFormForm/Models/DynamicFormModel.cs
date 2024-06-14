@@ -18,7 +18,7 @@ namespace MyFreeFormForm.Models
         //Maybe I need to add the FormNotes property here.  This way I can pass the notes to the FormNotes model
         public List<FormNotes> FormNotes { get; set; } = new List<FormNotes>();
         public string UserId { get; set; }
-
+        public string ParentFormId { get; set; }
         internal bool Validate(out List<string> errors)
         {
             errors = new List<string>();

@@ -29,7 +29,6 @@ namespace MyFreeFormForm.Services
             _context = context;
         }
 
-
         public async Task<bool> ProcessesFormAsync(DynamicFormModel model)
         {
             if (model == null) return false;
@@ -45,7 +44,8 @@ namespace MyFreeFormForm.Services
                     CreatedDate = DateTime.Now,
                     FormFields = new List<FormField>(), // Initialize the list here
                     FormNotes = new List<FormNotes>(), // Initialize the list here
-                    UserId = userId
+                    UserId = userId,
+                    ParentFormId = new Guid().ToString()
                 };
 
                 foreach (var field in model.Fields)
@@ -67,7 +67,6 @@ namespace MyFreeFormForm.Services
                             {
                                 formField.FieldDateValue = dateValue;
                             }
-
                         }
                         catch (Exception e)
                         {
@@ -91,7 +90,6 @@ namespace MyFreeFormForm.Services
                     }
                         myForm.FormFields.Add(formField);
                     _context.FormFields.Add(formField);
-
                 }
                 foreach (var note in model.FormNotes)
                 {
@@ -117,7 +115,6 @@ namespace MyFreeFormForm.Services
             }
         }
 
-
         Task IFormProcessorService.ProcessFormAsync(string serializedFormData)
         {
             var form = JsonConvert.DeserializeObject<FormCollection>(serializedFormData);
@@ -129,8 +126,6 @@ namespace MyFreeFormForm.Services
             var model = JsonConvert.DeserializeObject<DynamicFormModel>(serializedFormData);
             return ProcessesFormAsync(model);
 
-        }
-     
+        }     
     }
-
 }
