@@ -81,6 +81,7 @@ namespace MyFreeFormForm.Controllers
                 var description = form["Description"];
                 var formNotes = form["FormNotes"];
                 var userId = form["UserId"];
+                var ParentFormId = new Guid().ToString();
                 var indices = new HashSet<int>();
 
                 // Regular expression to match field indices
@@ -102,7 +103,8 @@ namespace MyFreeFormForm.Controllers
                     Description = description,
                     Fields = new List<DynamicField>(),
                     FormNotes = new List<FormNotes>(),
-                    UserId = userId
+                    UserId = userId,
+                    ParentFormId = ParentFormId
                 };             
                 foreach (var index in indices)
                 {
@@ -583,9 +585,21 @@ namespace MyFreeFormForm.Controllers
             return Json(new { success = false, message = "Form deletion failed" });
         }
 
-      /*  /// <summary>
-        /// Deletes all forms under a specific form name.
-        [HttpDelete("delete-form")]*/
+        [HttpPost("delete-bulk")]
+        public async Task<IActionResult> DeleteForms(int id)
+        {
+            var parentId = await _formsDbc.GetParentFormIdByFormIdAsync(id);
+            if (parentId != null)
+            {
+                var deleteResult = await _formsDbc.DeleteFormsAsync(parentId); // Assuming DeleteFormsAsync handles the deletion logic
+                if (deleteResult)
+                {
+                    return Json(new { success = true, message = "Forms successfully deleted" });
+                }
+            }
+            return Json(new { success = false, message = "Form deletion failed" });
+        }
 
+        
     }
 }
