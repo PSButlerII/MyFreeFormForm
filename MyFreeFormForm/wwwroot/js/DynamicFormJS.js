@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function () {
     console.time('DynamicFormJS');
     const form = document.querySelector('form');
